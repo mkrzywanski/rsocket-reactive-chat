@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 class StartupListener {
+
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
     StartupListener(final ReactiveMongoTemplate reactiveMongoTemplate) {

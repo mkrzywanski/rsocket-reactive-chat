@@ -44,10 +44,11 @@ class MessageController {
     @MessageMapping("chat-channel")
     public Flux<Message> handle(Flux<Message> incomingMessages, @AuthenticationPrincipal UserDetails user) {
         Flux<MessageDocument> map = incomingMessages.map(this::toMessageDocument);
-        Disposable voidMono = messageRepository.saveAll(map)
+        Disposable incomingMessagesSubscription = messageRepository.saveAll(map)
                 .doOnNext(messageDocument -> LOG.info("AAAA {}", messageDocument.toString()))
                 .then()
-                .subscribeOn(Schedulers.boundedElastic()).subscribe();
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe();
         Set<UUID> userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
         return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
                 .doOnNext(message -> LOG.info("Message reply {}", message))
@@ -56,7 +57,7 @@ class MessageController {
                 })
                 .doOnCancel(() -> {
                     LOG.info("Cancelled");
-                    voidMono.dispose();
+                    incomingMessagesSubscription.dispose();
                 }).doOnError(throwable -> {
                     LOG.error(throwable.getMessage());
                 });

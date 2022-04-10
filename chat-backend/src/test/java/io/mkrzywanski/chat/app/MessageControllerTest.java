@@ -79,11 +79,11 @@ class MessageControllerTest {
                 .tcp("localhost", port);
     }
 
-//    @AfterAll
-//    public void tearDownOnce() {
-//        requesterUser1.dispose();
-//        requesterUser2.dispose();
-//    }
+    @AfterAll
+    public void tearDownOnce() {
+        requesterUser1.dispose();
+        requesterUser2.dispose();
+    }
 
     @Test
     void userCanCreateChat() {
@@ -102,7 +102,6 @@ class MessageControllerTest {
     void userCanJoinExistingChat() {
         Mono<UUID> chatId = requesterUser1
                 .route("create-chat")
-                .data(new CreateChatRequest("user"))
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId);
 
@@ -112,30 +111,27 @@ class MessageControllerTest {
 
         StepVerifier
                 .create(result)
-                .consumeNextWith(message -> {
-                            assertThat(message).isTrue();
-                        }
-                )
+                .consumeNextWith(message -> assertThat(message).isTrue())
                 .verifyComplete();
     }
 
     @Test
-    void user1ShouldGetMessagesFromUser2() throws InterruptedException {
+    void user1ShouldGetMessagesFromUser2() {
 
-        //create chat
+        //user1 creates chat
         UUID chatId = requesterUser1
                 .route("create-chat")
-                .data(new CreateChatRequest("user"))
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();
 
-        //user 2 joins chat
-        Mono<Boolean> result = requesterUser2.route("join-chat")
+        //user2 joins chat
+        Boolean joiningResult = requesterUser2.route("join-chat")
                 .data(new JoinChatRequest(chatId))
-                .retrieveMono(Boolean.class);
+                .retrieveMono(Boolean.class)
+                .block();
 
-        assert Boolean.TRUE.equals(result.block());
+        assert Boolean.TRUE.equals(joiningResult);
 
         //user1 wants to send this message
         Flux<Message> messageFromUser1 = Flux.just(new Message("user1", "hello from user1", chatId));
@@ -155,12 +151,11 @@ class MessageControllerTest {
                 .data(just2)
                 .retrieveFlux(Message.class);
 
-        //subscribe to user1 flux and delay it by 1 second so that user2 channel can send messages and user1 received them
+        //subscribe to user1 flux and delay it by 1 second so that user2 channel can send messages and user1 receive them
         Disposable subscription = incomingMessagesForUser1
                 .subscribeOn(Schedulers.boundedElastic())
                 .delaySubscription(Duration.ofSeconds(1))
                 .subscribe();
-
 
         StepVerifier
                 .create(incomingMessagesForUser2, 1)

@@ -29,7 +29,7 @@ class NewMessageWatcher {
                 .watchCollection("messages")
                 .filter(where("chatRoomId").in(chats).and("usernameFrom").ne(username))
                 .listen()
-                .doOnNext(e -> System.out.println("event " + e))
+                .doOnNext(e -> LOGGER.info("event " + e))
                 .filter(event -> event.getOperationType() == INSERT)
                 .map(ChangeStreamEvent::getBody)
                 .map(messageDocument -> new Message(messageDocument.getUsernameFrom(), messageDocument.getContent(), messageDocument.getChatRoomId()));

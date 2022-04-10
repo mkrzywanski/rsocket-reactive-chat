@@ -10,12 +10,11 @@ import java.util.UUID;
 
 @Component
 class ChatRoomUserMappings {
+
     private final Map<String, Set<UUID>> userNameToChat = new HashMap<>();
-    private final Map<UUID, Set<String>> chatToUsers = new HashMap<>();
 
     public boolean putUserToChat(String userName, UUID chatId) {
-        userNameToChat.computeIfAbsent(userName, s -> new HashSet<>()).add(chatId);
-        return chatToUsers.computeIfAbsent(chatId, s -> new HashSet<>()).add(userName);
+        return userNameToChat.computeIfAbsent(userName, s -> new HashSet<>()).add(chatId);
     }
 
     public Set<UUID> getUserChatRooms(String userName) {
@@ -24,6 +23,5 @@ class ChatRoomUserMappings {
 
     public void clear() {
         userNameToChat.clear();
-        chatToUsers.clear();
     }
 }
