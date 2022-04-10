@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      database: dbaa
+      username: root
+      password: password
+      authentication-database: admin
+      auto-index-creation: true
+      uuid-representation: standard
