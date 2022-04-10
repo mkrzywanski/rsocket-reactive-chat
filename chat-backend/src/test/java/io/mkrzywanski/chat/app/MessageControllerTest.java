@@ -156,7 +156,7 @@ class MessageControllerTest {
                 .retrieveFlux(Message.class);
 
         //subscribe to user1 flux and delay it by 1 second so that user2 channel can send messages and user1 received them
-        Disposable subscribe = incomingMessagesForUser1
+        Disposable subscription = incomingMessagesForUser1
                 .subscribeOn(Schedulers.boundedElastic())
                 .delaySubscription(Duration.ofSeconds(1))
                 .subscribe();
@@ -172,6 +172,6 @@ class MessageControllerTest {
                 .thenCancel()
                 .verify();
 
-        subscribe.dispose();
+        subscription.dispose();
     }
 }
