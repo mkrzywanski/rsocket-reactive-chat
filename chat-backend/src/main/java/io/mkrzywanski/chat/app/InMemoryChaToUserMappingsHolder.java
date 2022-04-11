@@ -9,14 +9,16 @@ import java.util.Set;
 import java.util.UUID;
 
 @Component
-class ChatRoomUserMappings {
+class InMemoryChaToUserMappingsHolder implements ChaToUserMappingsHolder {
 
     private final Map<String, Set<UUID>> userNameToChat = new HashMap<>();
 
+    @Override
     public boolean putUserToChat(String userName, UUID chatId) {
         return userNameToChat.computeIfAbsent(userName, s -> new HashSet<>()).add(chatId);
     }
 
+    @Override
     public Set<UUID> getUserChatRooms(String userName) {
         return userNameToChat.get(userName);
     }

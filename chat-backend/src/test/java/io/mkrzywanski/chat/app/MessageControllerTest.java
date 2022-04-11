@@ -2,8 +2,6 @@ package io.mkrzywanski.chat.app;
 
 import io.mkrzywanski.chat.ChatApplication;
 import io.rsocket.metadata.WellKnownMimeType;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -18,6 +16,7 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -44,22 +43,24 @@ class MessageControllerTest {
     int port;
 
     @Autowired
-    private ChatRoomUserMappings chatRoomUserMappings;
+    private InMemoryChaToUserMappingsHolder chatRoomUserMappings;
 
     @Autowired
     private MessageRepository messageRepository;
 
     @BeforeAll
     public void setupOnce() {
+        Hooks.onOperatorDebug();
+//        Hooks.onErrorDropped(throwable -> {});
         requesterUser1 = setupUser1Requester();
         requesterUser2 = setupUser2Requester();
     }
 
-    @AfterEach
-    void tearDown() {
-        chatRoomUserMappings.clear();
-        messageRepository.deleteAll();
-    }
+//    @AfterEach
+//    void tearDown() {
+//        chatRoomUserMappings.clear();
+//        messageRepository.deleteAll();
+//    }
 
     private RSocketRequester setupUser2Requester() {
         var user2 = new UsernamePasswordMetadata("user2", "pass");
@@ -79,11 +80,11 @@ class MessageControllerTest {
                 .tcp("localhost", port);
     }
 
-    @AfterAll
-    public void tearDownOnce() {
-        requesterUser1.dispose();
-        requesterUser2.dispose();
-    }
+//    @AfterAll
+//    public void tearDownOnce() {
+//        requesterUser1.dispose();
+//        requesterUser2.dispose();
+//    }
 
     @Test
     void userCanCreateChat() {

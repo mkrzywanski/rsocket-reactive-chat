@@ -18,6 +18,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 class NewMessageWatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NewMessageWatcher.class);
+
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
     NewMessageWatcher(final ReactiveMongoTemplate reactiveMongoTemplate) {

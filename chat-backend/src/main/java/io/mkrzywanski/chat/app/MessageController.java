@@ -18,11 +18,11 @@ import java.util.UUID;
 class MessageController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageController.class);
-    private final ChatRoomUserMappings chatRoomUserMappings;
+    private final ChaToUserMappingsHolder chatRoomUserMappings;
     private final MessageRepository messageRepository;
     private final NewMessageWatcher newMessageWatcher;
 
-    MessageController(final ChatRoomUserMappings chatRoomUserMappings, final MessageRepository messageRepository, final NewMessageWatcher newMessageWatcher) {
+    MessageController(final ChaToUserMappingsHolder chatRoomUserMappings, final MessageRepository messageRepository, final NewMessageWatcher newMessageWatcher) {
         this.chatRoomUserMappings = chatRoomUserMappings;
         this.messageRepository = messageRepository;
         this.newMessageWatcher = newMessageWatcher;
