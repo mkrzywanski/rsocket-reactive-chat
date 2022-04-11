@@ -32,6 +32,6 @@ class NewMessageWatcher {
                 .doOnNext(e -> LOGGER.info("event " + e))
                 .filter(event -> event.getOperationType() == INSERT)
                 .map(ChangeStreamEvent::getBody)
-                .map(messageDocument -> new Message(messageDocument.getUsernameFrom(), messageDocument.getContent(), messageDocument.getChatRoomId()));
+                .map(messageDocument -> new Message(messageDocument.getUsernameFrom(), messageDocument.getContent(), messageDocument.getChatRoomId(), "aaa"));
     }
 }
