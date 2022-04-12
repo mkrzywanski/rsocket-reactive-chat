@@ -79,11 +79,11 @@ class MessageControllerTest {
                 .tcp("localhost", port);
     }
 
-//    @AfterAll
-//    public void tearDownOnce() {
-//        requesterUser1.dispose();
-//        requesterUser2.dispose();
-//    }
+    @AfterAll
+    public void tearDownOnce() {
+        requesterUser1.dispose();
+        requesterUser2.dispose();
+    }
 
     @Test
     void userCanCreateChat() {
