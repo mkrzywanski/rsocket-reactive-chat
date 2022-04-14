@@ -21,7 +21,6 @@ public class RSocketSecurityConfig {
 
     @Bean
     RSocketMessageHandler messageHandler(RSocketStrategies strategies) {
-
         RSocketMessageHandler handler = new RSocketMessageHandler();
         handler.getArgumentResolverConfigurer().addCustomResolver(new AuthenticationPrincipalArgumentResolver());
         handler.setRSocketStrategies(strategies);

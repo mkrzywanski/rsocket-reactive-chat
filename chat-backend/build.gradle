@@ -26,6 +26,11 @@ dependencies {
 	testImplementation 'org.assertj:assertj-core:3.22.0'
 	// https://mvnrepository.com/artifact/io.rsocket/rsocket-core
 	implementation 'io.rsocket:rsocket-core:1.1.2'
+	compileOnly 'org.projectlombok:lombok:1.18.22'
+	annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.22'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'

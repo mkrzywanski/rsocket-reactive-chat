@@ -2,6 +2,7 @@ package io.mkrzywanski.chat.app;
 
 import io.mkrzywanski.chat.ChatApplication;
 import io.rsocket.metadata.WellKnownMimeType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,13 +17,14 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MessageControllerTest {
 
     private static final MimeType SIMPLE_AUTH = MimeTypeUtils.parseMimeType(WellKnownMimeType.MESSAGE_RSOCKET_AUTHENTICATION.getString());
+    public static final String USER_1 = "user1";
 
     private RSocketRequester requesterUser1;
     private RSocketRequester requesterUser2;
@@ -43,24 +46,22 @@ class MessageControllerTest {
     int port;
 
     @Autowired
-    private InMemoryChaToUserMappingsHolder chatRoomUserMappings;
+    private MongoChatToUserMappingsHolder chatRoomUserMappings;
 
     @Autowired
     private MessageRepository messageRepository;
 
     @BeforeAll
     public void setupOnce() {
-        Hooks.onOperatorDebug();
-//        Hooks.onErrorDropped(throwable -> {});
         requesterUser1 = setupUser1Requester();
         requesterUser2 = setupUser2Requester();
     }
 
-//    @AfterEach
-//    void tearDown() {
-//        chatRoomUserMappings.clear();
-//        messageRepository.deleteAll();
-//    }
+    @AfterEach
+    void tearDown() {
+        chatRoomUserMappings.clear();
+        messageRepository.deleteAll();
+    }
 
     private RSocketRequester setupUser2Requester() {
         var user2 = new UsernamePasswordMetadata("user2", "pass");
@@ -80,18 +81,11 @@ class MessageControllerTest {
                 .tcp("localhost", port);
     }
 
-//    @AfterAll
-//    public void tearDownOnce() {
-//        requesterUser1.dispose();
-//        requesterUser2.dispose();
-//    }
-
     @Test
     void userCanCreateChat() {
         Mono<ChatCreatedResponse> result = requesterUser1
                 .route("create-chat")
-                .retrieveMono(ChatCreatedResponse.class)
-                .doOnError(throwable -> System.out.println(throwable));
+                .retrieveMono(ChatCreatedResponse.class);
 
         StepVerifier
                 .create(result, 1)
@@ -164,6 +158,87 @@ class MessageControllerTest {
                     assertThat(message.usernameFrom()).isEqualTo("user1");
                     assertThat(message.content()).isEqualTo("hello from user1");
                     assertThat(message.chatRoomId()).isEqualTo(chatId);
+                })
+                .thenCancel()
+                .verify();
+
+        subscription.dispose();
+    }
+
+    @Test
+    void userShouldReceiveMessagesThatArriveOnChatThatHeJoinedAfterOpeningTheChannel() {
+        //user1 creates first chat
+        UUID firstChat = requesterUser1
+                .route("create-chat")
+                .retrieveMono(ChatCreatedResponse.class)
+                .map(ChatCreatedResponse::chatId)
+                .block();
+
+        //user2 joins first chat
+        Boolean joiningResult = requesterUser2.route("join-chat")
+                .data(new JoinChatRequest(firstChat))
+                .retrieveMono(Boolean.class)
+                .block();
+
+        assert Boolean.TRUE.equals(joiningResult);
+
+        //user1 sink so that we can push to flux on demand
+        Sinks.Many<Message> user1Sink = Sinks.many().unicast().onBackpressureBuffer();
+        Flux<Message> messageFromUser1 = user1Sink.asFlux();
+
+        //sends user 1 messages and awaits for messages from chats that this user is part of
+        Flux<Message> incomingMessagesForUser1 = requesterUser1
+                .route("chat-channel")
+                .data(messageFromUser1)
+                .retrieveFlux(Message.class);
+
+        //sends user 1 messages and awaits for messages from chats that this user is part of
+        Flux<Message> incomingMessagesForUser2 = requesterUser2
+                .route("chat-channel")
+                .data(Flux.empty())
+                .retrieveFlux(Message.class);
+
+
+        //subscribe to user1 flux and delay it by 1 second so that user2 channel can send messages and user1 receive them
+        Disposable subscription = incomingMessagesForUser1
+                .subscribeOn(Schedulers.boundedElastic())
+                .delaySubscription(Duration.ofSeconds(1))
+                .subscribe();
+
+        AtomicReferenceArray<UUID> secondChat = new AtomicReferenceArray<>(1);
+
+        StepVerifier
+                .create(incomingMessagesForUser2)
+                .then(() -> user1Sink.emitNext(new Message(USER_1, "hello from user1", firstChat), Sinks.EmitFailureHandler.FAIL_FAST))
+                .consumeNextWith(message -> {
+                    assertThat(message.usernameFrom()).isEqualTo(USER_1);
+                    assertThat(message.content()).isEqualTo("hello from user1");
+                    assertThat(message.chatRoomId()).isEqualTo(firstChat);
+                }).then(() -> {
+                    //user1 creates anotherChat
+                    UUID chatId = requesterUser1
+                            .route("create-chat")
+                            .retrieveMono(ChatCreatedResponse.class)
+                            .map(ChatCreatedResponse::chatId)
+                            .block();
+                    secondChat.getAndSet(0, chatId);
+
+                    //user2 joins second chat
+                    Boolean joiningSecondChatResult = requesterUser2.route("join-chat")
+                            .data(new JoinChatRequest(chatId))
+                            .retrieveMono(Boolean.class)
+                            .block();
+                    assert Boolean.TRUE.equals(joiningSecondChatResult);
+
+                    //user1 sends message to another chat
+                    user1Sink.emitNext(new Message("user1", "hello from user1 on another chat", secondChat.get(0)), Sinks.EmitFailureHandler.FAIL_FAST);
+
+                })
+                .consumeNextWith(message -> {
+                    //user2 should receive message from user1 on second chat
+                    assertThat(message.usernameFrom()).isEqualTo("user1");
+                    assertThat(message.content()).isEqualTo("hello from user1 on another chat");
+                    assertThat(message.chatRoomId()).isEqualTo(secondChat.get(0));
                 })
                 .thenCancel()
                 .verify();

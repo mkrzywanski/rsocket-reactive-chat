@@ -1,17 +1,19 @@
 package io.mkrzywanski.chat.app;
 
-import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
-@Component
-class InMemoryChaToUserMappingsHolder implements ChaToUserMappingsHolder {
+class InMemoryChaToUserMappingsHolder implements ChatToUserMappingsHolder {
 
-    private final Map<String, Set<UUID>> userNameToChat = new HashMap<>();
+    private final Map<String, Set<UUID>> userNameToChat = new ConcurrentHashMap<>();
 
     @Override
     public boolean putUserToChat(String userName, UUID chatId) {
@@ -19,8 +21,8 @@ class InMemoryChaToUserMappingsHolder implements ChaToUserMappingsHolder {
     }
 
     @Override
-    public Set<UUID> getUserChatRooms(String userName) {
-        return userNameToChat.get(userName);
+    public Supplier<Mono<Set<UUID>>> getUserChatRooms(String userName) {
+        return () -> Mono.just(userNameToChat.get(userName));
     }
 
     public void clear() {
