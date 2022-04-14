@@ -1,0 +1,16 @@
+pull_request_rules:
+  - name: Dependabot automatic merge
+    conditions:
+        - and :
+            - author=dependabot[bot]
+            - check-success=build
+            - check-success=codecov/project
+            - check-success=lift
+    actions:
+      merge:
+        method: merge
+  - name: delete head branch on merged pull requests
+    conditions:
+      - merged
+    actions:
+      delete_head_branch:
