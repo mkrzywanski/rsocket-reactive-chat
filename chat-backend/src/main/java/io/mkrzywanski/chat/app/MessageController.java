@@ -2,6 +2,7 @@ package io.mkrzywanski.chat.app;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,16 +14,19 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Controller
 class MessageController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageController.class);
-    private final ChatRoomUserMappings chatRoomUserMappings;
+    private final ChatToUserMappingsHolder chatRoomUserMappings;
     private final MessageRepository messageRepository;
     private final NewMessageWatcher newMessageWatcher;
 
-    MessageController(final ChatRoomUserMappings chatRoomUserMappings, final MessageRepository messageRepository, final NewMessageWatcher newMessageWatcher) {
+    MessageController(@Qualifier("mongoChatToUserMappingsHolder") final ChatToUserMappingsHolder chatRoomUserMappings,
+                      final MessageRepository messageRepository,
+                      final NewMessageWatcher newMessageWatcher) {
         this.chatRoomUserMappings = chatRoomUserMappings;
         this.messageRepository = messageRepository;
         this.newMessageWatcher = newMessageWatcher;
@@ -48,12 +52,13 @@ class MessageController {
                 .doOnNext(messageDocument -> LOG.info("AAAA {}", messageDocument.toString()))
                 .then()
                 .subscribeOn(Schedulers.boundedElastic())
+                .doOnSubscribe(subscription -> LOG.info("subscribing to user " + user.getUsername() + " input channel"))
                 .subscribe();
-        Set<UUID> userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
+        Supplier<Mono<Set<UUID>>> userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
         return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
                 .doOnNext(message -> LOG.info("Message reply {}", message))
                 .doOnSubscribe(subscription -> {
-                    LOG.info("Subscribing to watcher");
+                    LOG.info("Subscribing to watcher : " + user.getUsername());
                 })
                 .doOnCancel(() -> {
                     LOG.info("Cancelled");
