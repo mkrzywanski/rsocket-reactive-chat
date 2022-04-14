@@ -36,6 +36,10 @@ class MessageDocument {
         return chatRoomId;
     }
 
+    boolean isNotFromUser(String usernameFrom) {
+        return !this.usernameFrom.equals(usernameFrom);
+    }
+
     @Override
     public String toString() {
         return "MessageDocument{" +

@@ -24,6 +24,7 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -138,12 +139,12 @@ class MessageControllerTest {
                 .retrieveFlux(Message.class);
 
         //user2 message
-        Flux<Message> just2 = Flux.just(new Message("user2", "hello from user2", chatId));
+        Flux<Message> messagesFromUser2 = Flux.just(new Message("user2", "hello from user2", chatId));
 
         //sends user 1 messages and awaits for messages from chats that this user is part of
         Flux<Message> incomingMessagesForUser2 = requesterUser2
                 .route("chat-channel")
-                .data(just2)
+                .data(messagesFromUser2)
                 .retrieveFlux(Message.class);
 
         //subscribe to user1 flux and delay it by 1 second so that user2 channel can send messages and user1 receive them
@@ -205,7 +206,7 @@ class MessageControllerTest {
                 .delaySubscription(Duration.ofSeconds(1))
                 .subscribe();
 
-        AtomicReferenceArray<UUID> secondChat = new AtomicReferenceArray<>(1);
+        AtomicReference<UUID> secondChat = new AtomicReference<>();
 
         StepVerifier
                 .create(incomingMessagesForUser2)
@@ -221,7 +222,7 @@ class MessageControllerTest {
                             .retrieveMono(ChatCreatedResponse.class)
                             .map(ChatCreatedResponse::chatId)
                             .block();
-                    secondChat.getAndSet(0, chatId);
+                    secondChat.set(chatId);
 
                     //user2 joins second chat
                     Boolean joiningSecondChatResult = requesterUser2.route("join-chat")
@@ -231,14 +232,14 @@ class MessageControllerTest {
                     assert Boolean.TRUE.equals(joiningSecondChatResult);
 
                     //user1 sends message to another chat
-                    user1Sink.emitNext(new Message("user1", "hello from user1 on another chat", secondChat.get(0)), Sinks.EmitFailureHandler.FAIL_FAST);
+                    user1Sink.emitNext(new Message("user1", "hello from user1 on another chat", secondChat.get()), Sinks.EmitFailureHandler.FAIL_FAST);
 
                 })
                 .consumeNextWith(message -> {
                     //user2 should receive message from user1 on second chat
                     assertThat(message.usernameFrom()).isEqualTo("user1");
                     assertThat(message.content()).isEqualTo("hello from user1 on another chat");
-                    assertThat(message.chatRoomId()).isEqualTo(secondChat.get(0));
+                    assertThat(message.chatRoomId()).isEqualTo(secondChat.get());
                 })
                 .thenCancel()
                 .verify();
