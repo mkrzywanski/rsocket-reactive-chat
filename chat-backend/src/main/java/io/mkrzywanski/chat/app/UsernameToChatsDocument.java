@@ -21,7 +21,7 @@ class UsernameToChatsDocument {
         this.id = UUID.randomUUID();
     }
 
-    void addChat(UUID chat) {
+    void addChat(final UUID chat) {
         chats.add(chat);
     }
 }

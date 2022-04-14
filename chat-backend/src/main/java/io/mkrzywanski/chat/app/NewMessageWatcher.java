@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static com.mongodb.client.model.changestream.OperationType.INSERT;
@@ -29,7 +28,7 @@ class NewMessageWatcher {
     }
 
     public Flux<Message> newMessagesForChats(final Supplier<Mono<Set<UUID>>> chats, final String username) {
-        Function<MessageDocument, Publisher<Boolean>> messageIsForThisUserChat =
+        final Function<MessageDocument, Publisher<Boolean>> messageIsForThisUserChat =
                 messageDocument -> chats.get().map(uuids -> !uuids.contains(messageDocument.getChatRoomId()));
         return reactiveMongoTemplate.changeStream(MessageDocument.class)
                 .watchCollection("messages")
