@@ -2,18 +2,13 @@ package io.mkrzywanski.chat;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoCredential;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.testcontainers.containers.GenericContainer;
 
 @Configuration
 class MongoConfig {
-
-    @Autowired
-    protected Environment environment;
 
     private static final String USERNAME = "userrrr";
     private static final String PASSWORD = "password";
@@ -21,12 +16,12 @@ class MongoConfig {
 
     @Bean
     GenericContainer<?> mongoDBContainer() {
-        var mongoReplicaSetReady = ContainerCommandWaitStrategy.builder()
+        final var mongoReplicaSetReady = ContainerCommandWaitStrategy.builder()
                 .command("mongo", "--quiet", "--port", "27017", "-u", "root", "-p", "password", "--eval", "rs.status().ok")
                 .expectedOutput("1\n")
                 .build();
 
-        var mongoDBContainer = new GenericContainer<>("bitnami/mongodb:4.4.12")
+        final var mongoDBContainer = new GenericContainer<>("bitnami/mongodb:4.4.12")
                 .withEnv("MONGODB_USERNAME", USERNAME)
                 .withEnv("MONGODB_PASSWORD", PASSWORD)
                 .withEnv("MONGODB_DATABASE", DATABASE)
@@ -41,9 +36,9 @@ class MongoConfig {
 
     @Bean
     MongoClientSettingsBuilderCustomizer mongoSettingsCustomizer(final GenericContainer<?> mongoDBContainer) {
-        var port = mongoDBContainer.getFirstMappedPort();
-        var url = String.format("mongodb://localhost:%s/%s?replicaSet=replicaset&authSource=admin", port, DATABASE);
-        var connectionString = new ConnectionString(url);
+        final var port = mongoDBContainer.getFirstMappedPort();
+        final var url = String.format("mongodb://localhost:%s/%s?replicaSet=replicaset&authSource=admin", port, DATABASE);
+        final var connectionString = new ConnectionString(url);
         return (settings) -> settings.applyConnectionString(connectionString)
                 .credential(MongoCredential.createCredential(USERNAME, DATABASE, PASSWORD.toCharArray()));
     }

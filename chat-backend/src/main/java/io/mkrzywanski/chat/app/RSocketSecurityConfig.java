@@ -20,8 +20,8 @@ import org.springframework.security.rsocket.core.PayloadSocketAcceptorIntercepto
 public class RSocketSecurityConfig {
 
     @Bean
-    RSocketMessageHandler messageHandler(RSocketStrategies strategies) {
-        RSocketMessageHandler handler = new RSocketMessageHandler();
+    RSocketMessageHandler messageHandler(final RSocketStrategies strategies) {
+        final var handler = new RSocketMessageHandler();
         handler.getArgumentResolverConfigurer().addCustomResolver(new AuthenticationPrincipalArgumentResolver());
         handler.setRSocketStrategies(strategies);
         return handler;
@@ -30,13 +30,13 @@ public class RSocketSecurityConfig {
     @Bean
     MapReactiveUserDetailsService authentication() {
         //This is NOT intended for production use (it is intended for getting started experience only)
-        UserDetails user = User.withDefaultPasswordEncoder()
+        final UserDetails user = User.withDefaultPasswordEncoder()
                 .username("user1")
                 .password("pass")
                 .roles("USER")
                 .build();
 
-        UserDetails user2 = User.withDefaultPasswordEncoder()
+        final UserDetails user2 = User.withDefaultPasswordEncoder()
                 .username("user2")
                 .password("pass")
                 .roles("NONE")
@@ -46,7 +46,7 @@ public class RSocketSecurityConfig {
     }
 
     @Bean
-    PayloadSocketAcceptorInterceptor authorization(RSocketSecurity security) {
+    PayloadSocketAcceptorInterceptor authorization(final RSocketSecurity security) {
         security.authorizePayload(authorize ->
                 authorize
                         .anyExchange().authenticated() // all connections, exchanges.

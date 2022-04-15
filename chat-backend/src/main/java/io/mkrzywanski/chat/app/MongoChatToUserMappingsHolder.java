@@ -34,7 +34,7 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
 
     @Override
     public Supplier<Mono<Set<UUID>>> getUserChatRooms(final String userName) {
-        Query query = Query.query(Criteria.where("userName").is(userName));
+        final Query query = Query.query(Criteria.where("userName").is(userName));
         return () -> reactiveMongoTemplate.find(query, UsernameToChatsDocument.class)
                 .flatMapIterable(UsernameToChatsDocument::getChats)
                 .collect(Collectors.toSet())

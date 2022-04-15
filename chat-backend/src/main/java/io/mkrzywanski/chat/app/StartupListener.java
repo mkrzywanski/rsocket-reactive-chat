@@ -15,7 +15,7 @@ class StartupListener {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    void applicationReadyEvent(ApplicationReadyEvent applicationReadyEvent) {
+    void applicationReadyEvent(final ApplicationReadyEvent applicationReadyEvent) {
         reactiveMongoTemplate.createCollection(MessageDocument.class);
     }
 
