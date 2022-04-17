@@ -21,11 +21,13 @@ class UserResumeTokenService {
 
     void saveAndGenerateNewTokenFor(final String userName) {
         log.info("Saving token for user {}", userName);
-        final var map = userResumeTokenRepository.findByUserName(userName).map(userResumeTokenDocument -> {
-            final long epochSecond = clock.instant().getEpochSecond();
-            userResumeTokenDocument.setTokenTimestamp(new BsonTimestamp((int) epochSecond, 0));
-            return userResumeTokenDocument;
-        });
+        final var map = userResumeTokenRepository.findByUserName(userName)
+                .defaultIfEmpty(new UserResumeTokenDocument(userName))
+                .map(userResumeTokenDocument -> {
+                    final long epochSecond = clock.instant().getEpochSecond();
+                    userResumeTokenDocument.setTokenTimestamp(new BsonTimestamp((int) epochSecond, 0));
+                    return userResumeTokenDocument;
+                });
         userResumeTokenRepository.saveAll(map);
     }
 

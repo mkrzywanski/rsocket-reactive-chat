@@ -71,8 +71,6 @@ class MessageControllerTest {
 
     @DynamicPropertySource
     static void setProperties(final DynamicPropertyRegistry registry) {
-        final var url = String.format("mongodb://root:password@localhost:%s/%s?replicaSet=replicaset&authSource=admin", MONGO_DB_CONTAINER.getFirstMappedPort(), DATABASE);
-//        registry.add("spring.data.mongodb.uri", () -> url);
         registry.add("spring.data.mongodb.username", () -> "root");
         registry.add("spring.data.mongodb.password", () -> "password");
         registry.add("spring.data.mongodb.replicaSet", () -> "replicaset");
@@ -202,7 +200,19 @@ class MessageControllerTest {
                 .thenCancel()
                 .verify();
 
+
+        final var user1Token = userResumeTokenService.getResumeTimestampFor(USER_1);
+        StepVerifier.create(user1Token)
+                .expectNextCount(1)
+                .verifyComplete();
+
+        final var user2Token = userResumeTokenService.getResumeTimestampFor(USER_2);
+        StepVerifier.create(user2Token)
+                .expectNextCount(1)
+                .verifyComplete();
+
         subscription.dispose();
+
     }
 
 }
