@@ -25,7 +25,8 @@ class NewMessageWatcher {
     private final ReactiveMongoTemplate reactiveMongoTemplate;
     private final UserResumeTokenService resumeTokenService;
 
-    NewMessageWatcher(final ReactiveMongoTemplate reactiveMongoTemplate, final UserResumeTokenService userResumeTokenRepository) {
+    NewMessageWatcher(final ReactiveMongoTemplate reactiveMongoTemplate,
+                      final UserResumeTokenService userResumeTokenRepository) {
         this.reactiveMongoTemplate = reactiveMongoTemplate;
         this.resumeTokenService = userResumeTokenRepository;
     }

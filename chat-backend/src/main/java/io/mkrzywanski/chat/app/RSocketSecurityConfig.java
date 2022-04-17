@@ -17,7 +17,7 @@ import org.springframework.security.rsocket.core.PayloadSocketAcceptorIntercepto
 @Configuration
 @EnableRSocketSecurity
 @EnableReactiveMethodSecurity
-public class RSocketSecurityConfig {
+class RSocketSecurityConfig {
 
     @Bean
     RSocketMessageHandler messageHandler(final RSocketStrategies strategies) {

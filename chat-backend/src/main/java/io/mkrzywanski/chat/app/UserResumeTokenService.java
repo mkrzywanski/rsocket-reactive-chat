@@ -7,8 +7,8 @@ import reactor.core.publisher.Mono;
 
 import java.time.Clock;
 
-@Component
 @Slf4j
+@Component
 class UserResumeTokenService {
 
     private final UserResumeTokenRepository userResumeTokenRepository;
@@ -19,7 +19,7 @@ class UserResumeTokenService {
         this.clock = clock;
     }
 
-    void saveAndGenerateNewTokenFor(final String userName) {
+    public void saveAndGenerateNewTokenFor(final String userName) {
         log.info("Saving token for user {}", userName);
         final var map = userResumeTokenRepository.findByUserName(userName)
                 .defaultIfEmpty(new UserResumeTokenDocument(userName))
@@ -31,14 +31,13 @@ class UserResumeTokenService {
         userResumeTokenRepository.saveAll(map);
     }
 
-    Mono<BsonTimestamp> getResumeTimestampFor(final String userName) {
+    public Mono<BsonTimestamp> getResumeTimestampFor(final String userName) {
         return userResumeTokenRepository.findByUserName(userName)
                 .map(UserResumeTokenDocument::getTokenTimestamp)
                 .defaultIfEmpty(new BsonTimestamp((int) clock.instant().getEpochSecond(), 0));
-//                .defaultIfEmpty(clock.instant());
     }
 
-    void deleteTokenForUser(final String username) {
+    public void deleteTokenForUser(final String username) {
         userResumeTokenRepository.deleteByUserName(username);
         log.info("Token for user {} deleted", username);
     }
