@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.security.rsocket.metadata.SimpleAuthenticationEncoder;
 import org.springframework.security.rsocket.metadata.UsernamePasswordMetadata;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -37,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = ChatApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "spring.rsocket.server.port=0")
+@DirtiesContext
 class MultipleConcurrentUsersTest {
 
     private static final GenericContainer<?> MONGO_DB_CONTAINER = new GenericContainer<>("bitnami/mongodb:4.4.12")
@@ -89,9 +91,9 @@ class MultipleConcurrentUsersTest {
 
     @AfterAll
     void afterAll() {
+        MONGO_DB_CONTAINER.stop();
         requesterUser1.dispose();
         requesterUser2.dispose();
-        MONGO_DB_CONTAINER.stop();
     }
 
     private RSocketRequester setupUser2Requester() {
