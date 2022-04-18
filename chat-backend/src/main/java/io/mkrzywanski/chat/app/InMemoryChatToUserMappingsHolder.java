@@ -9,7 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-class InMemoryChaToUserMappingsHolder implements ChatToUserMappingsHolder {
+class InMemoryChatToUserMappingsHolder implements ChatToUserMappingsHolder {
 
     private final Map<String, Set<UUID>> userNameToChat = new ConcurrentHashMap<>();
 

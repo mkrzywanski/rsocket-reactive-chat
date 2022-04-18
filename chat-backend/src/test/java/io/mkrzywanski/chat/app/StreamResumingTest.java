@@ -2,8 +2,8 @@ package io.mkrzywanski.chat.app;
 
 import io.mkrzywanski.chat.ChatApplication;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +18,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -33,11 +34,12 @@ import static io.mkrzywanski.chat.app.UserConstants.USER_1;
 import static io.mkrzywanski.chat.app.UserConstants.USER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = {ChatApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+
+@SpringBootTest(classes = ChatApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "spring.rsocket.server.port=0")
 @DirtiesContext
-class MessageControllerTest {
+class StreamResumingTest {
 
     private static final GenericContainer<?> MONGO_DB_CONTAINER = new GenericContainer<>("bitnami/mongodb:4.4.12")
             .withEnv("MONGODB_USERNAME", USERNAME)
@@ -79,22 +81,12 @@ class MessageControllerTest {
         registry.add("spring.data.mongodb.database", () -> DATABASE);
         registry.add("spring.data.mongodb.port", MONGO_DB_CONTAINER::getFirstMappedPort);
         registry.add("spring.data.mongodb.authentication-database", () -> "admin");
-
     }
-
 
     @BeforeAll
     public void setupOnce() {
         requesterUser1 = setupUser1Requester();
         requesterUser2 = setupUser2Requester();
-    }
-
-    @AfterEach
-    void tearDown() {
-        chatRoomUserMappings.clear();
-        messageRepository.deleteAll();
-        userResumeTokenService.deleteTokenForUser(USER_1);
-        userResumeTokenService.deleteTokenForUser(USER_2);
     }
 
     @AfterAll
@@ -122,39 +114,18 @@ class MessageControllerTest {
                 .tcp("localhost", port);
     }
 
-    @Test
-    void userCanCreateChat() {
-        final var result = requesterUser1
-                .route("create-chat")
-                .retrieveMono(ChatCreatedResponse.class);
-
-        StepVerifier
-                .create(result, 1)
-                .consumeNextWith(message -> assertThat(message.chatId()).isNotNull())
-                .verifyComplete();
+    @BeforeEach
+    void tearDown() {
+        chatRoomUserMappings.clear();
+        messageRepository.deleteAll();
+        userResumeTokenService.deleteTokenForUser(USER_1);
+        userResumeTokenService.deleteTokenForUser(USER_2);
     }
 
     @Test
-    void userCanJoinExistingChat() {
-        final var chatId = requesterUser1
-                .route("create-chat")
-                .retrieveMono(ChatCreatedResponse.class)
-                .map(ChatCreatedResponse::chatId);
-
-        final var result = requesterUser2.route("join-chat")
-                .data(new JoinChatRequest(chatId.block()))
-                .retrieveMono(Boolean.class);
-
-        StepVerifier
-                .create(result)
-                .consumeNextWith(message -> assertThat(message).isTrue())
-                .verifyComplete();
-    }
-
-    @Test
-    void user1ShouldGetMessagesFromUser2() throws InterruptedException {
+    void userShouldReceiveMessagesAfterReconnect() throws InterruptedException {
         //user1 creates chat
-        final UUID chatId = requesterUser1
+        final UUID chat = requesterUser1
                 .route("create-chat")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
@@ -162,28 +133,26 @@ class MessageControllerTest {
 
         //user2 joins chat
         final Boolean joiningResult = requesterUser2.route("join-chat")
-                .data(new JoinChatRequest(chatId))
+                .data(new JoinChatRequest(chat))
                 .retrieveMono(Boolean.class)
                 .block();
 
         assert Boolean.TRUE.equals(joiningResult);
 
-        //user1 wants to send this message
-        final var messageFromUser1 = Flux.just(new Message("user1", "hello from user1", chatId));
+        //user1 sink so that we can push to flux on demand
+        final var user1Sink = Sinks.many().unicast().onBackpressureBuffer();
+        final var messageFromUser1 = user1Sink.asFlux();
 
-        //sends user 1 messages and awaits for messages from chats that this user is part of
+        //sends user1 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser1 = requesterUser1
                 .route("chat-channel")
                 .data(messageFromUser1)
                 .retrieveFlux(Message.class);
 
-        //user2 message
-        final var messagesFromUser2 = Flux.just(new Message("user2", "hello from user2", chatId));
-
-        //sends user 1 messages and awaits for messages from chats that this user is part of
+        //sends user2 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser2 = requesterUser2
                 .route("chat-channel")
-                .data(messagesFromUser2)
+                .data(Flux.empty())
                 .retrieveFlux(Message.class);
 
         //subscribe to user1 flux and delay it by 1 second so that user2 channel can send messages and user1 receive them
@@ -192,16 +161,35 @@ class MessageControllerTest {
                 .delaySubscription(Duration.ofSeconds(1))
                 .subscribe();
 
+        //user2 receives first message and cancel subscription to close connection
         StepVerifier
-                .create(incomingMessagesForUser2, 1)
+                .create(incomingMessagesForUser2)
+                .then(() -> user1Sink.emitNext(new Message(USER_1, "hello from user1", chat), Sinks.EmitFailureHandler.FAIL_FAST))
                 .consumeNextWith(message -> {
                     assertThat(message.usernameFrom()).isEqualTo(USER_1);
                     assertThat(message.content()).isEqualTo("hello from user1");
-                    assertThat(message.chatRoomId()).isEqualTo(chatId);
+                    assertThat(message.chatRoomId()).isEqualTo(chat);
                 })
                 .thenCancel()
                 .verify();
 
+        //user1 still sends messages to chat
+        user1Sink.emitNext(new Message(USER_1, "hello from user1 again", chat), Sinks.EmitFailureHandler.FAIL_FAST);
+
+        //user2 reconnects
+        final var incomingMessagesForUser2AfterReconnect = requesterUser2
+                .route("chat-channel")
+                .data(Flux.empty())
+                .retrieveFlux(Message.class);
+
+        //user2 should receive messages after reconnect
+        StepVerifier
+                .create(incomingMessagesForUser2AfterReconnect)
+                .consumeNextWith(message -> {
+                    assertThat(message.usernameFrom()).isEqualTo(USER_1);
+                    assertThat(message.content()).isEqualTo("hello from user1 again");
+                    assertThat(message.chatRoomId()).isEqualTo(chat);
+                });
 
         final var user1Token = userResumeTokenService.getResumeTimestampFor(USER_1);
         StepVerifier.create(user1Token)
@@ -214,7 +202,5 @@ class MessageControllerTest {
                 .verifyComplete();
 
         subscription.dispose();
-
     }
-
 }
