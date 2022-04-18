@@ -8,7 +8,7 @@ plugins {
 
 ext {
 	testcontainersVersion = '1.17.1'
-	lombokVersion = '1.18.22'
+	lombokVersion = '1.18.24'
 }
 
 group = 'io.mkrzywanski'
