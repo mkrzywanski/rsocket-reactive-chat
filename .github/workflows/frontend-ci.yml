@@ -1,5 +1,8 @@
 name: chat-frontend-ci
-on: [push]
+on: 
+  push:
+    paths:
+      - './chat-frontend'
 
 jobs:
   build:

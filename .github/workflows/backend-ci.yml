@@ -1,5 +1,8 @@
 name: rsocket-chat-backend-ci
-on: [push]
+on: 
+  push:
+    paths:
+      - './chat-backend'
 jobs:
   build:
     runs-on: ubuntu-latest
