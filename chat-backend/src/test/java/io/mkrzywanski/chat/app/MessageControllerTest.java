@@ -151,6 +151,7 @@ class MessageControllerTest {
                 .consumeNextWith(message -> assertThat(message).isTrue())
                 .verifyComplete();
     }
+    
 
     @Test
     void user1ShouldGetMessagesFromUser2() throws InterruptedException {
