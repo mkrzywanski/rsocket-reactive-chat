@@ -1,8 +1,9 @@
 import React, { lazy, Suspense } from 'react';
+import {ChatInputTextBoxProps} from './ChatInputTextBox'
 
 const LazyChatInputTextBox = lazy(() => import('./ChatInputTextBox'));
 
-const ChatInputTextBox = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const ChatInputTextBox = (props: ChatInputTextBoxProps) => (
   <Suspense fallback={null}>
     <LazyChatInputTextBox {...props} />
   </Suspense>
