@@ -1,1 +1,2 @@
-# rsocket-reactive-chat
+# rsocket-reactive-chat 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mkrzywanski_rsocket-reactive-chat&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mkrzywanski_rsocket-reactive-chat)  [![codecov](https://codecov.io/gh/mkrzywanski/rsocket-reactive-chat/branch/main/graph/badge.svg?token=MxqKmnIcsb)](https://codecov.io/gh/mkrzywanski/rsocket-reactive-chat)
