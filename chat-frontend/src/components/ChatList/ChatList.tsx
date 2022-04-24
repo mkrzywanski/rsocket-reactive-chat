@@ -9,12 +9,10 @@ export interface ChatListProps {
   chatList : Array<ChatInfo>
 }
 
-const ChatList = ({ chatList }: ChatListProps): JSX.Element => <div></div>;
-
-// const ChatList: FC<ChatListProps> = () => (
-//   <div className={styles.ChatList} data-testid="ChatList">
-//     ChatList Component
-//   </div>
-// );
+const ChatList: FC<ChatListProps> = (props : ChatListProps) => (
+  <div className={styles.ChatList} data-testid="ChatList">
+    ChatList Component
+  </div>
+);
 
 export default ChatList;
