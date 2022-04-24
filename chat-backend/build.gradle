@@ -4,6 +4,7 @@ plugins {
 	id 'java'
 	id 'jacoco'
 	id 'checkstyle'
+	id "org.sonarqube" version "3.3"
 }
 
 ext {
@@ -58,4 +59,12 @@ test {
 	useJUnitPlatform()
 	finalizedBy jacocoTestReport
 	testLogging.showStandardStreams = true
+}
+
+sonarqube {
+	properties {
+		property "sonar.projectKey", "mkrzywanski_rsocket-reactive-chat"
+		property "sonar.organization", "mkrzywanski"
+		property "sonar.host.url", "https://sonarcloud.io"
+	}
 }

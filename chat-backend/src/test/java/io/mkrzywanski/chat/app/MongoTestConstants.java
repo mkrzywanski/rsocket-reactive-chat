@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class MongoTestConstants {
+    static final String BITNAMI_MONGODB_IMAGE = "bitnami/mongodb:5.0.7";
     static final String USERNAME = "user";
     static final String PASSWORD = "password";
     static final String DATABASE = "db";
