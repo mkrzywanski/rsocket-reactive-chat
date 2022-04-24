@@ -1,9 +1,8 @@
-name: chat-frontend-ci
-on: 
+name: rsocket-chat-frontend-ci
+on:
   push:
     paths:
       - 'chat-frontend/**'
-
 jobs:
   build:
     runs-on: ubuntu-latest
