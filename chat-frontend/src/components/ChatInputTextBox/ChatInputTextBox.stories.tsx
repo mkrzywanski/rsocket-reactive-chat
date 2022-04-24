@@ -5,7 +5,7 @@ export default {
   title: "ChatInputTextBox",
 };
 
-export const Default = () => <ChatInputTextBox />;
+export const Default = () => <ChatInputTextBox send={() => {}}/>;
 
 Default.story = {
   name: 'default',

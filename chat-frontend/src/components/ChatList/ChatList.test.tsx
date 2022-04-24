@@ -5,7 +5,7 @@ import ChatList from './ChatList';
 
 describe('<ChatList />', () => {
   test('it should mount', () => {
-    render(<ChatList />);
+    render(<ChatList chatList={new Array(0)}/>);
     
     const chatList = screen.getByTestId('ChatList');
 

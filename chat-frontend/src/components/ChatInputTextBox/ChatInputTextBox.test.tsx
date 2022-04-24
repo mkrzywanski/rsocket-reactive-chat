@@ -5,7 +5,7 @@ import ChatInputTextBox from './ChatInputTextBox';
 
 describe('<ChatInputTextBox />', () => {
   test('it should mount', () => {
-    render(<ChatInputTextBox />);
+    render(<ChatInputTextBox send={() => {}}/>);
     
     const chatInputTextBox = screen.getByTestId('ChatInputTextBox');
 

@@ -1,15 +1,15 @@
 import React, { FC } from 'react';
 import styles from './ChatList.module.css';
 
-interface ChatInfo {
+export interface ChatInfo {
 
 }
 
-interface ChatListProps {
+export interface ChatListProps {
   chatList : Array<ChatInfo>
 }
 
-const ChatList = ({ chatList }: ChatListProps): JSX.Element => <div>{chatList}</div>;
+const ChatList = ({ chatList }: ChatListProps): JSX.Element => <div></div>;
 
 // const ChatList: FC<ChatListProps> = () => (
 //   <div className={styles.ChatList} data-testid="ChatList">

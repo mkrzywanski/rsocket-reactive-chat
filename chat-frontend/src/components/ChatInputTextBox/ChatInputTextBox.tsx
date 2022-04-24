@@ -1,7 +1,7 @@
 import React, { ChangeEvent, ChangeEventHandler, FC, useState } from 'react';
 import styles from './ChatInputTextBox.module.css';
 
-interface ChatInputTextBoxProps {
+export interface ChatInputTextBoxProps {
   send : (content : String) => void
 }
 
