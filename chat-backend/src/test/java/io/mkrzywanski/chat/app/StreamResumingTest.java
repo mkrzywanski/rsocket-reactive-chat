@@ -25,6 +25,7 @@ import reactor.test.StepVerifier;
 import java.time.Duration;
 import java.util.UUID;
 
+import static io.mkrzywanski.chat.app.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
 import static io.mkrzywanski.chat.app.MongoTestConstants.DATABASE;
 import static io.mkrzywanski.chat.app.MongoTestConstants.PASSWORD;
 import static io.mkrzywanski.chat.app.MongoTestConstants.USERNAME;
@@ -41,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 class StreamResumingTest {
 
-    private static final GenericContainer<?> MONGO_DB_CONTAINER = new GenericContainer<>("bitnami/mongodb:4.4.12")
+    private static final GenericContainer<?> MONGO_DB_CONTAINER = new GenericContainer<>(BITNAMI_MONGODB_IMAGE)
             .withEnv("MONGODB_USERNAME", USERNAME)
             .withEnv("MONGODB_PASSWORD", PASSWORD)
             .withEnv("MONGODB_DATABASE", DATABASE)
