@@ -57,6 +57,7 @@ class MessageControllerTest extends ChatBaseTest {
     void userCanCreateChat() {
         final var result = requesterUser1
                 .route("create-chat")
+                .data("create")
                 .retrieveMono(ChatCreatedResponse.class);
 
         StepVerifier
@@ -71,6 +72,7 @@ class MessageControllerTest extends ChatBaseTest {
     void userCanJoinExistingChat() {
         final var chatId = requesterUser1
                 .route("create-chat")
+                .data("create")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId);
 
@@ -83,13 +85,14 @@ class MessageControllerTest extends ChatBaseTest {
                 .consumeNextWith(message -> assertThat(message).isTrue())
                 .verifyComplete();
     }
-
+    
 
     @Test
     void user1ShouldGetMessagesFromUser2() throws InterruptedException {
         //user1 creates chat
         final UUID chatId = requesterUser1
                 .route("create-chat")
+                .data("create")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();

@@ -7,3 +7,9 @@ spring:
       authentication-database: admin
       auto-index-creation: true
       uuid-representation: standard
+  rsocket:
+    server:
+      transport: websocket
+      port: 9090
+#server:
+#  port: 8080
