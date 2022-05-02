@@ -23,7 +23,7 @@ import static io.mkrzywanski.chat.app.UserConstants.USER_2;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "spring.rsocket.server.port=0")
 @DirtiesContext
-class ChatBaseTest {
+abstract class ChatBaseTest {
 
     RSocketRequester requesterUser1;
     RSocketRequester requesterUser2;
