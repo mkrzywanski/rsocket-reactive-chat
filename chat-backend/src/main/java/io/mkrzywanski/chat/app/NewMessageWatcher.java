@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static com.mongodb.client.model.changestream.OperationType.INSERT;
 
@@ -31,17 +30,17 @@ class NewMessageWatcher {
         this.resumeTokenService = userResumeTokenRepository;
     }
 
-    public Flux<Message> newMessagesForChats(final Supplier<Mono<Set<UUID>>> chats, final String username) {
+    public Flux<Message> newMessagesForChats(final Mono<Set<UUID>> chats, final String username) {
         return resumeTokenService.getResumeTimestampFor(username)
                 .flatMapMany(bsonTimestamp -> changeStream(username, chats, bsonTimestamp))
                 .doOnCancel(() -> resumeTokenService.saveAndGenerateNewTokenFor(username));
     }
 
     private Flux<Message> changeStream(final String username,
-                                       final Supplier<Mono<Set<UUID>>> chats,
+                                       final Mono<Set<UUID>> chats,
                                        final BsonTimestamp bsonTimestamp) {
         final Function<MessageDocument, Publisher<Boolean>> messageIsForThisUserChat =
-                message -> chats.get().map(chatIds -> chatIds.contains(message.getChatRoomId()));
+                message -> chats.map(chatIds -> chatIds.contains(message.getChatRoomId()));
         return reactiveMongoTemplate.changeStream(MessageDocument.class)
                 .watchCollection("messages")
                 .resumeAt(bsonTimestamp)

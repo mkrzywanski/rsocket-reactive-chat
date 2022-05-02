@@ -274,7 +274,7 @@ class MessageControllerTest {
                 .data(messageFromUser1)
                 .retrieveFlux(Message.class);
 
-        //sends user 1 messages and awaits for messages from chats that this user is part of
+        //sends user 2 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser2 = requesterUser2
                 .route("chat-channel")
                 .data(Flux.empty())

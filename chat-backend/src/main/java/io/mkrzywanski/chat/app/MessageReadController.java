@@ -21,7 +21,7 @@ class MessageReadController {
 
     @MessageMapping("user.chats")
     public Mono<Set<UUID>> getUserChats(@AuthenticationPrincipal final UserDetails user) {
-        return chatToUserMappingsHolder.getUserChatRooms(user.getUsername()).get();
+        return chatToUserMappingsHolder.getUserChatRooms(user.getUsername());
     }
 }
 
