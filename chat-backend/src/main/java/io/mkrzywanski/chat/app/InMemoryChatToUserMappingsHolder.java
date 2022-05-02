@@ -14,8 +14,8 @@ class InMemoryChatToUserMappingsHolder implements ChatToUserMappingsHolder {
     private final Map<String, Set<UUID>> userNameToChat = new ConcurrentHashMap<>();
 
     @Override
-    public boolean putUserToChat(final String userName, final UUID chatId) {
-        return userNameToChat.computeIfAbsent(userName, s -> new HashSet<>()).add(chatId);
+    public Mono<Boolean> putUserToChat(final String userName, final UUID chatId) {
+        return Mono.just(userNameToChat.computeIfAbsent(userName, s -> new HashSet<>()).add(chatId));
     }
 
     @Override
