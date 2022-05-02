@@ -41,7 +41,7 @@ class NewMessageWatcher {
                                        final Supplier<Mono<Set<UUID>>> chats,
                                        final BsonTimestamp bsonTimestamp) {
         final Function<MessageDocument, Publisher<Boolean>> messageIsForThisUserChat =
-                messageDocument -> chats.get().map(uuids -> !uuids.contains(messageDocument.getChatRoomId()));
+                message -> chats.get().map(chatIds -> chatIds.contains(message.getChatRoomId()));
         return reactiveMongoTemplate.changeStream(MessageDocument.class)
                 .watchCollection("messages")
                 .resumeAt(bsonTimestamp)

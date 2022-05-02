@@ -2,8 +2,8 @@ package io.mkrzywanski.chat.app;
 
 import io.mkrzywanski.chat.ChatApplication;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +18,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -115,12 +116,14 @@ class MultipleConcurrentUsersTest {
                 .tcp("localhost", port);
     }
 
-    @BeforeEach
+    @AfterEach
     void tearDown() {
-        chatRoomUserMappings.clear();
-        messageRepository.deleteAll();
-        userResumeTokenService.deleteTokenForUser(USER_1);
-        userResumeTokenService.deleteTokenForUser(USER_2);
+        final var clearUserChatMappings = chatRoomUserMappings.clear();
+        final var deleteMessages = messageRepository.deleteAll();
+        final var clearUser1Token = userResumeTokenService.deleteTokenForUser(USER_1);
+        final var clearUser2Token = userResumeTokenService.deleteTokenForUser(USER_2);
+
+        Mono.when(clearUserChatMappings, deleteMessages, clearUser1Token, clearUser2Token).subscribe();
     }
 
     @Test

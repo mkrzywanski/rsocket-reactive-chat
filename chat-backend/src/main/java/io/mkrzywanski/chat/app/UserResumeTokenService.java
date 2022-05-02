@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonTimestamp;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Clock;
+import java.util.function.Function;
 
 @Slf4j
 @Component
@@ -21,14 +23,21 @@ class UserResumeTokenService {
 
     public void saveAndGenerateNewTokenFor(final String userName) {
         log.info("Saving token for user {}", userName);
-        final var map = userResumeTokenRepository.findByUserName(userName)
+        final var userToken = userResumeTokenRepository.findByUserName(userName)
                 .defaultIfEmpty(new UserResumeTokenDocument(userName))
-                .map(userResumeTokenDocument -> {
-                    final long epochSecond = clock.instant().getEpochSecond();
-                    userResumeTokenDocument.setTokenTimestamp(new BsonTimestamp((int) epochSecond, 0));
-                    return userResumeTokenDocument;
-                });
-        userResumeTokenRepository.saveAll(map);
+                .map(changeCurrentToken());
+        userResumeTokenRepository.saveAll(userToken)
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnComplete(() -> log.info("User {} token saved ", userName))
+                .subscribe();
+    }
+
+    private Function<UserResumeTokenDocument, UserResumeTokenDocument> changeCurrentToken() {
+        return userResumeTokenDocument -> {
+            final long epochSecond = clock.instant().getEpochSecond();
+            userResumeTokenDocument.setTokenTimestamp(new BsonTimestamp((int) epochSecond, 0));
+            return userResumeTokenDocument;
+        };
     }
 
     public Mono<BsonTimestamp> getResumeTimestampFor(final String userName) {
@@ -37,8 +46,9 @@ class UserResumeTokenService {
                 .defaultIfEmpty(new BsonTimestamp((int) clock.instant().getEpochSecond(), 0));
     }
 
-    public void deleteTokenForUser(final String username) {
-        userResumeTokenRepository.deleteByUserName(username);
-        log.info("Token for user {} deleted", username);
+    public Mono<Boolean> deleteTokenForUser(final String username) {
+        return userResumeTokenRepository.deleteByUserName(username)
+                .map(deletedCount -> true)
+                .doOnSuccess(ignored -> log.info("Token for user {} deleted", username));
     }
 }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.rsocket.context.LocalRSocketServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.security.rsocket.metadata.SimpleAuthenticationEncoder;
 import org.springframework.security.rsocket.metadata.UsernamePasswordMetadata;
@@ -18,10 +19,12 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.UUID;
 
 import static io.mkrzywanski.chat.app.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
@@ -92,10 +95,12 @@ class MessageControllerTest {
 
     @AfterEach
     void tearDown() {
-        chatRoomUserMappings.clear();
-        messageRepository.deleteAll();
-        userResumeTokenService.deleteTokenForUser(USER_1);
-        userResumeTokenService.deleteTokenForUser(USER_2);
+        final var  clearUserChatMappings = chatRoomUserMappings.clear();
+        final var deleteMessages = messageRepository.deleteAll();
+        final var clearUser1Token = userResumeTokenService.deleteTokenForUser(USER_1);
+        final var clearUser2Token = userResumeTokenService.deleteTokenForUser(USER_2);
+
+        Mono.when(clearUserChatMappings, deleteMessages, clearUser1Token, clearUser2Token).subscribe();
     }
 
     @AfterAll
@@ -151,7 +156,7 @@ class MessageControllerTest {
                 .consumeNextWith(message -> assertThat(message).isTrue())
                 .verifyComplete();
     }
-    
+
 
     @Test
     void user1ShouldGetMessagesFromUser2() throws InterruptedException {
@@ -219,4 +224,24 @@ class MessageControllerTest {
 
     }
 
+    @Test
+    void shouldGetUserChats() {
+        //given
+        final UUID chatId = requesterUser1
+                .route("create-chat")
+                .retrieveMono(ChatCreatedResponse.class)
+                .map(ChatCreatedResponse::chatId)
+                .block();
+
+        //when
+        final Mono<Set<UUID>> chatIdsMono = requesterUser1
+                .route("get.user.chats")
+                .retrieveMono(new ParameterizedTypeReference<>() {
+                });
+
+        //then
+        StepVerifier.create(chatIdsMono)
+                .consumeNextWith(chatIds -> assertThat(chatIds).hasSize(1).containsExactly(chatId))
+                .expectComplete();
+    }
 }

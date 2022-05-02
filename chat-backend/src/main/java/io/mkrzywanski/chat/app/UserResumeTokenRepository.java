@@ -9,5 +9,5 @@ import java.util.UUID;
 @Repository
 interface UserResumeTokenRepository extends ReactiveMongoRepository<UserResumeTokenDocument, UUID> {
     Mono<UserResumeTokenDocument> findByUserName(String username);
-    Mono<Boolean> deleteByUserName(String username);
+    Mono<Long> deleteByUserName(String username);
 }

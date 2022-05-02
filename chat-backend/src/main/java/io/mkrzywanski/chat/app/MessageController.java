@@ -32,14 +32,13 @@ class MessageController {
     @MessageMapping("create-chat")
     public Mono<ChatCreatedResponse> createChat(@AuthenticationPrincipal final UserDetails user) {
         final UUID chatId = UUID.randomUUID();
-        chatRoomUserMappings.putUserToChat(user.getUsername(), chatId);
-        return Mono.just(new ChatCreatedResponse(chatId));
+        return chatRoomUserMappings.putUserToChat(user.getUsername(), chatId)
+                .map(ignored -> new ChatCreatedResponse(chatId));
     }
 
     @MessageMapping("join-chat")
     public Mono<Boolean> joinChat(final JoinChatRequest joinChatRequest, @AuthenticationPrincipal final UserDetails user) {
-        final boolean isAdded = chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId());
-        return Mono.just(isAdded);
+        return chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId());
     }
 
     @MessageMapping("chat-channel")
@@ -59,9 +58,8 @@ class MessageController {
                 .doOnCancel(() -> {
                     LOG.info("Cancelled");
                     incomingMessagesSubscription.dispose();
-                }).doOnError(throwable -> {
-                    LOG.error(throwable.getMessage());
-                });
+                })
+                .doOnError(throwable -> LOG.error(throwable.getMessage()));
     }
 
     private MessageDocument toMessageDocument(final Message message) {
