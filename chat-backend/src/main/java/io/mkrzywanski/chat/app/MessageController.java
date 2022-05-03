@@ -33,12 +33,13 @@ class MessageController {
     public Mono<ChatCreatedResponse> createChat(@AuthenticationPrincipal final UserDetails user) {
         final UUID chatId = UUID.randomUUID();
         return chatRoomUserMappings.putUserToChat(user.getUsername(), chatId)
+                .log()
                 .map(ignored -> new ChatCreatedResponse(chatId));
     }
 
     @MessageMapping("join-chat")
     public Mono<Boolean> joinChat(final JoinChatRequest joinChatRequest, @AuthenticationPrincipal final UserDetails user) {
-        return chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId());
+        return chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId()).log();
     }
 
     @MessageMapping("chat-channel")
@@ -52,9 +53,7 @@ class MessageController {
         final var userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
         return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
                 .doOnNext(message -> LOG.info("Message reply {}", message))
-                .doOnSubscribe(subscription -> {
-                    LOG.info("Subscribing to watcher : " + user.getUsername());
-                })
+                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : " + user.getUsername()))
                 .doOnCancel(() -> {
                     LOG.info("Cancelled");
                     incomingMessagesSubscription.dispose();

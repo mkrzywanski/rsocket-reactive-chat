@@ -32,6 +32,7 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
                     return usernameToChatsDocument;
                 });
         return reactiveMongoTemplate.save(document)
+                .doOnNext(usernameToChatsDocument -> log.info("saving document {}", usernameToChatsDocument))
                 .map(usernameToChatsDocument -> true);
     }
 
@@ -40,10 +41,12 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
         final Query query = Query.query(Criteria.where("userName").is(userName));
         return reactiveMongoTemplate.find(query, UsernameToChatsDocument.class)
                 .flatMapIterable(UsernameToChatsDocument::getChats)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet())
+                .defaultIfEmpty(Set.of());
     }
 
     Flux<UsernameToChatsDocument> clear() {
-        return reactiveMongoTemplate.remove(UsernameToChatsDocument.class).findAndRemove();
+        return reactiveMongoTemplate.remove(UsernameToChatsDocument.class)
+                .findAndRemove();
     }
 }
