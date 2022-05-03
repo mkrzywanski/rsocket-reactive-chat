@@ -2,6 +2,7 @@ package io.mkrzywanski.chat.app;
 
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.UUID;
 class UsernameToChatsDocument {
     @Id
     private UUID id;
+    @Indexed(unique = true)
     private String userName;
     private Set<UUID> chats;
 

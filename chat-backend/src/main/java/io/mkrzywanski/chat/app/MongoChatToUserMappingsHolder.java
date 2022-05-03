@@ -25,7 +25,8 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
 
     @Override
     public Mono<Boolean> putUserToChat(final String userName, final UUID chatId) {
-        final var document = reactiveMongoTemplate.findById(userName, UsernameToChatsDocument.class)
+        final Query query = Query.query(Criteria.where("userName").is(userName));
+        final var document = reactiveMongoTemplate.findOne(query, UsernameToChatsDocument.class)
                 .defaultIfEmpty(new UsernameToChatsDocument(userName, new HashSet<>()))
                 .map(usernameToChatsDocument -> {
                     usernameToChatsDocument.addChat(chatId);
@@ -39,10 +40,13 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
     @Override
     public Mono<Set<UUID>> getUserChatRooms(final String userName) {
         final Query query = Query.query(Criteria.where("userName").is(userName));
-        return reactiveMongoTemplate.find(query, UsernameToChatsDocument.class)
+        return reactiveMongoTemplate.findOne(query, UsernameToChatsDocument.class)
+                .doOnNext(usernameToChatsDocument -> log.info("found user {}", usernameToChatsDocument.getUserName()))
                 .flatMapIterable(UsernameToChatsDocument::getChats)
                 .collect(Collectors.toSet())
-                .defaultIfEmpty(Set.of());
+                .doOnNext(uuids -> log.info("set size {}", uuids.size()))
+                .defaultIfEmpty(Set.of())
+                .doOnNext(uuids -> log.info("set size {}", uuids.size()));
     }
 
     Flux<UsernameToChatsDocument> clear() {
