@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 class InMemoryChatToUserMappingsHolder implements ChatToUserMappingsHolder {
 
@@ -19,8 +18,8 @@ class InMemoryChatToUserMappingsHolder implements ChatToUserMappingsHolder {
     }
 
     @Override
-    public Supplier<Mono<Set<UUID>>> getUserChatRooms(final String userName) {
-        return () -> Mono.just(userNameToChat.get(userName));
+    public Mono<Set<UUID>> getUserChatRooms(final String userName) {
+        return Mono.just(userNameToChat.get(userName));
     }
 
     public void clear() {

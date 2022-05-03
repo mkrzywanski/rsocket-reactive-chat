@@ -11,7 +11,6 @@ import reactor.core.publisher.Mono;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,19 +32,21 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
                     return usernameToChatsDocument;
                 });
         return reactiveMongoTemplate.save(document)
+                .doOnNext(usernameToChatsDocument -> log.info("saving document {}", usernameToChatsDocument))
                 .map(usernameToChatsDocument -> true);
     }
 
     @Override
-    public Supplier<Mono<Set<UUID>>> getUserChatRooms(final String userName) {
+    public Mono<Set<UUID>> getUserChatRooms(final String userName) {
         final Query query = Query.query(Criteria.where("userName").is(userName));
-        return () -> reactiveMongoTemplate.find(query, UsernameToChatsDocument.class)
+        return reactiveMongoTemplate.find(query, UsernameToChatsDocument.class)
                 .flatMapIterable(UsernameToChatsDocument::getChats)
                 .collect(Collectors.toSet())
-                .cache();
+                .defaultIfEmpty(Set.of());
     }
 
     Flux<UsernameToChatsDocument> clear() {
-        return reactiveMongoTemplate.remove(UsernameToChatsDocument.class).findAndRemove();
+        return reactiveMongoTemplate.remove(UsernameToChatsDocument.class)
+                .findAndRemove();
     }
 }
