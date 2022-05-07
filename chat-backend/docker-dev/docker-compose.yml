@@ -5,6 +5,8 @@ services:
     image: bitnami/mongodb:5.0.7
     restart: always
     environment:
+      MONGODB_USERNAME: my_user
+      MONGODB_PASSWORD: password123
       MONGODB_ROOT_PASSWORD: password
       MONGODB_REPLICA_SET_MODE: primary
       MONGODB_REPLICA_SET_KEY: somekey1
@@ -18,7 +20,7 @@ services:
       - "8082:8081"
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
     depends_on:
       - mongo
   keycloak:

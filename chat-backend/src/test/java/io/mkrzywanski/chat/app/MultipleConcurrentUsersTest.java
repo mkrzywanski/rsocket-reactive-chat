@@ -59,6 +59,7 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
         //user1 creates first chat
         final UUID firstChat = requesterUser1
                 .route("create-chat")
+                .data("create")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();
@@ -106,6 +107,7 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
                     //user1 creates anotherChat
                     final UUID chatId = requesterUser1
                             .route("create-chat")
+                            .data("create")
                             .retrieveMono(ChatCreatedResponse.class)
                             .map(ChatCreatedResponse::chatId)
                             .block();

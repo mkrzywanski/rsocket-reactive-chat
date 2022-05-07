@@ -49,7 +49,8 @@ class RSocketSecurityConfig {
     PayloadSocketAcceptorInterceptor authorization(final RSocketSecurity security) {
         security.authorizePayload(authorize ->
                 authorize
-                        .anyExchange().authenticated() // all connections, exchanges.
+                        .setup().permitAll()
+                        .anyExchange().authenticated()
         ).simpleAuthentication(Customizer.withDefaults());
         return security.build();
     }

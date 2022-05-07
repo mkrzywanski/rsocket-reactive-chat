@@ -58,6 +58,7 @@ class StreamResumingTest extends ChatBaseTest {
         //user1 creates chat
         final UUID chat = requesterUser1
                 .route("create-chat")
+                .data("create")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();

@@ -15,6 +15,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+
 import static io.mkrzywanski.chat.app.RSocketConstants.SIMPLE_AUTH;
 import static io.mkrzywanski.chat.app.UserConstants.USER_1;
 import static io.mkrzywanski.chat.app.UserConstants.USER_2;
@@ -80,6 +82,6 @@ abstract class ChatBaseTest {
                 .setupMetadata(usernamePasswordMetadata, SIMPLE_AUTH)
                 .rsocketStrategies(v ->
                         v.encoder(new SimpleAuthenticationEncoder()))
-                .tcp("localhost", port);
+                .websocket(URI.create("ws://localhost:" + port));
     }
 }

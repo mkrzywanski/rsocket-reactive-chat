@@ -30,7 +30,8 @@ class MessageController {
     }
 
     @MessageMapping("create-chat")
-    public Mono<ChatCreatedResponse> createChat(@AuthenticationPrincipal final UserDetails user) {
+    public Mono<ChatCreatedResponse> createChat(final String join, @AuthenticationPrincipal final UserDetails user) {
+        LOG.info("Creating new chat");
         final UUID chatId = UUID.randomUUID();
         return chatRoomUserMappings.putUserToChat(user.getUsername(), chatId)
                 .log()
