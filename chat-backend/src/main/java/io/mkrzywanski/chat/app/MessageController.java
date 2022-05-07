@@ -45,7 +45,7 @@ class MessageController {
 
     @MessageMapping("chat-channel")
     public Flux<Message> handle(final Flux<Message> incomingMessages, @AuthenticationPrincipal final UserDetails user) {
-        final var messages = incomingMessages.map(this::toMessageDocument);
+        final var messages = incomingMessages.map(MessageMapper::toMessageDocument);
         final var incomingMessagesSubscription = messageRepository.saveAll(messages)
                 .then()
                 .subscribeOn(Schedulers.boundedElastic())
@@ -60,13 +60,5 @@ class MessageController {
                     incomingMessagesSubscription.dispose();
                 })
                 .doOnError(throwable -> LOG.error(throwable.getMessage()));
-    }
-
-    private MessageDocument toMessageDocument(final Message message) {
-        return new MessageDocument(
-                message.usernameFrom(),
-                message.content(),
-                message.chatRoomId()
-        );
     }
 }

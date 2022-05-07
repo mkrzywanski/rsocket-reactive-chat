@@ -1,26 +1,23 @@
 package io.mkrzywanski.chat.app;
 
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Controller
 class MessageReadController {
 
-    private final ChatToUserMappingsHolder chatToUserMappingsHolder;
+    private final MessageService messageService;
 
-    MessageReadController(final ChatToUserMappingsHolder chatToUserMappingsHolder) {
-        this.chatToUserMappingsHolder = chatToUserMappingsHolder;
+    MessageReadController(final MessageService messageService) {
+        this.messageService = messageService;
     }
 
-    @MessageMapping("get-user-chats")
-    public Mono<Set<UUID>> getUserChats(@AuthenticationPrincipal final UserDetails user) {
-        return chatToUserMappingsHolder.getUserChatRooms(user.getUsername());
+    @MessageMapping("chat.{chatId}.messages")
+    public Flux<Message> getUserChats(@DestinationVariable("chatId") final UUID chatId) {
+        return messageService.get(chatId);
     }
 }
-

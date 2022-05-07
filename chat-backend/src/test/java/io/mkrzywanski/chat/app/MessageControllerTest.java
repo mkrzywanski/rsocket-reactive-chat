@@ -178,4 +178,30 @@ class MessageControllerTest extends ChatBaseTest {
                 .expectNext(Set.of(chatId))
                 .verifyComplete();
     }
+
+    @Test
+    void shouldGetAllChatMessagesForRequestingUser() {
+
+        //given
+        UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
+        MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId);
+        messageRepository.save(m1).subscribe();
+        MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId);
+        messageRepository.save(m2).subscribe();
+
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+
+
+        //when
+        Flux<Message> messageFlux = requesterUser1
+                .route("chat." + chatId + ".messages")
+                .retrieveFlux(Message.class);
+
+        //then
+        StepVerifier.create(messageFlux)
+                .expectNext(MessageMapper.fromMessageDocument(m1))
+                .expectNext(MessageMapper.fromMessageDocument(m2))
+                .verifyComplete();
+    }
 }
