@@ -12,7 +12,7 @@ const ChatInputTextBox: FC<ChatInputTextBoxProps> = (props) => {
   return (
     <div className={styles.ChatInputTextBox} data-testid="ChatInputTextBox">
       <div>Input</div>
-      <textarea onChange={handleTextChange}></textarea>
+      <textarea onChange={handleTextChange}>{text}</textarea>
       <button onClick={(event) => props.send("a")}>Send</button>
     </div>
   )
