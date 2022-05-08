@@ -1,5 +1,6 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
@@ -22,7 +23,9 @@ class InMemoryChatToUserMappingsHolder implements ChatToUserMappingsHolder {
         return Mono.just(userNameToChat.get(userName));
     }
 
-    public void clear() {
+    @Override
+    public Flux<UsernameToChatsDocument> clear() {
         userNameToChat.clear();
+        return Flux.empty();
     }
 }

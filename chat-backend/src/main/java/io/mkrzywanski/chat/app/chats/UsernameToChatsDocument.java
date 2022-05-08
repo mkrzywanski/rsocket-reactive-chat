@@ -1,4 +1,4 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats;
 
 import lombok.Getter;
 import org.springframework.data.annotation.Id;

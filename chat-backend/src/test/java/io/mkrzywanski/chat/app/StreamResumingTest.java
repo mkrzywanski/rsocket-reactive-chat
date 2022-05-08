@@ -1,5 +1,8 @@
 package io.mkrzywanski.chat.app;
 
+import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
+import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.Message;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.DynamicPropertyRegistry;

@@ -1,5 +1,9 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.ChatBaseTest;
+import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
+import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.Message;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
@@ -183,10 +187,10 @@ class MessageControllerTest extends ChatBaseTest {
     void shouldGetAllChatMessagesForRequestingUser() {
 
         //given
-        UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
-        MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId);
+        final UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
+        final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId);
         messageRepository.save(m1).subscribe();
-        MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId);
+        final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId);
         messageRepository.save(m2).subscribe();
 
         chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
@@ -194,7 +198,7 @@ class MessageControllerTest extends ChatBaseTest {
 
 
         //when
-        Flux<Message> messageFlux = requesterUser1
+        final var messageFlux = requesterUser1
                 .route("chat." + chatId + ".messages")
                 .retrieveFlux(Message.class);
 

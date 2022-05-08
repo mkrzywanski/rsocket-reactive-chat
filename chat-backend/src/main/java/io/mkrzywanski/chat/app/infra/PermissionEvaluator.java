@@ -1,8 +1,7 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.infra;
 
+import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.UUID;
 
@@ -16,11 +15,10 @@ class PermissionEvaluator {
     }
 
     //https://github.com/spring-projects/spring-security/issues/9401
-    public boolean isUserPartOfChat(UUID chatId, String userName) {
+    public boolean isUserPartOfChat(final UUID chatId, final String userName) {
         return chatToUserMappingsHolder.getUserChatRooms(userName)
                 .map(uuids -> uuids.contains(chatId))
                 .share()
-//                .publishOn(Schedulers.boundedElastic())
                 .block();
     }
 }

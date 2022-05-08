@@ -1,5 +1,7 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.message.api.Message;
+import io.mkrzywanski.chat.app.chats.resuming.UserResumeTokenService;
 import org.bson.BsonTimestamp;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;

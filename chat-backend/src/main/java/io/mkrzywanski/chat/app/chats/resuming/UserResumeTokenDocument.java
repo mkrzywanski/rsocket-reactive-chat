@@ -1,4 +1,4 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats.resuming;
 
 import lombok.Getter;
 import org.bson.BsonTimestamp;

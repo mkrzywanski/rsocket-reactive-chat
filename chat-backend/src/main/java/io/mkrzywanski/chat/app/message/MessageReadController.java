@@ -1,5 +1,6 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.message.api.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,6 @@ class MessageReadController {
 
     @MessageMapping("chat.{chatId}.messages")
     public Flux<Message> getUserChats(@DestinationVariable("chatId") final UUID chatId) {
-        return messageService.get(chatId);
+        return messageService.findByChatId(chatId);
     }
 }

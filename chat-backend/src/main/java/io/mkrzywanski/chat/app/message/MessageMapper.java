@@ -1,11 +1,13 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
+
+import io.mkrzywanski.chat.app.message.api.Message;
 
 class MessageMapper {
-    static Message fromMessageDocument(MessageDocument messageDocument) {
+    static Message fromMessageDocument(final MessageDocument messageDocument) {
         return new Message(messageDocument.getUsernameFrom(), messageDocument.getContent(), messageDocument.getChatRoomId());
     }
 
-    static MessageDocument toMessageDocument(Message message) {
+    static MessageDocument toMessageDocument(final Message message) {
         return new MessageDocument(
                 message.usernameFrom(),
                 message.content(),

@@ -1,5 +1,9 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
+import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
+import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
