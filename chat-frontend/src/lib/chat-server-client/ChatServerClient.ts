@@ -1,5 +1,5 @@
 
-import { BufferEncoders, encodeCompositeMetadata, encodeRoute, encodeSimpleAuthMetadata, MESSAGE_RSOCKET_AUTHENTICATION, MESSAGE_RSOCKET_COMPOSITE_METADATA, MESSAGE_RSOCKET_ROUTING, RSocketClient } from 'rsocket-core';
+import { BufferEncoders, encodeCompositeMetadata, encodeRoute, MESSAGE_RSOCKET_AUTHENTICATION, MESSAGE_RSOCKET_COMPOSITE_METADATA, MESSAGE_RSOCKET_ROUTING, RSocketClient } from 'rsocket-core';
 import { ReactiveSocket } from 'rsocket-types';
 import RSocketWebsocketClient from 'rsocket-websocket-client';
 import { AuthMetadataProvider } from './AuthMetadataProvider';
