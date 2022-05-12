@@ -1,6 +1,7 @@
 package io.mkrzywanski.chat.app.message;
 
 import io.mkrzywanski.chat.app.message.api.Message;
+import io.mkrzywanski.chat.app.message.api.Page;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -20,5 +21,10 @@ class MessageReadController {
     @MessageMapping("chat.{chatId}.messages")
     public Flux<Message> getUserChats(@DestinationVariable("chatId") final UUID chatId) {
         return messageService.findByChatId(chatId);
+    }
+
+    @MessageMapping("chat.{chatId}.messages.paged")
+    public Flux<Message> getUserChats(@DestinationVariable("chatId") final UUID chatId, final Page page) {
+        return messageService.findByChatId(chatId, page);
     }
 }

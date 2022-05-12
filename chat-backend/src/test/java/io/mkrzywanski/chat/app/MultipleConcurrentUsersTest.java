@@ -2,6 +2,7 @@ package io.mkrzywanski.chat.app;
 
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
 import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.InputMessage;
 import io.mkrzywanski.chat.app.message.api.Message;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -101,7 +102,7 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
 
         StepVerifier
                 .create(incomingMessagesForUser2)
-                .then(() -> user1Sink.emitNext(new Message(USER_1, "hello from user1", firstChat), Sinks.EmitFailureHandler.FAIL_FAST))
+                .then(() -> user1Sink.emitNext(new InputMessage(USER_1, "hello from user1", firstChat), Sinks.EmitFailureHandler.FAIL_FAST))
                 .consumeNextWith(message -> {
                     assertThat(message.usernameFrom()).isEqualTo(USER_1);
                     assertThat(message.content()).isEqualTo("hello from user1");
@@ -124,7 +125,7 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
                     assert Boolean.TRUE.equals(joiningSecondChatResult);
 
                     //user1 sends message to another chat
-                    user1Sink.emitNext(new Message("user1", "hello from user1 on another chat", secondChat.get()), Sinks.EmitFailureHandler.FAIL_FAST);
+                    user1Sink.emitNext(new InputMessage("user1", "hello from user1 on another chat", secondChat.get()), Sinks.EmitFailureHandler.FAIL_FAST);
 
                 })
                 .consumeNextWith(message -> {

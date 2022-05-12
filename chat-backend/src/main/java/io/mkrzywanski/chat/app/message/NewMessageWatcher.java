@@ -52,6 +52,6 @@ class NewMessageWatcher {
                 .map(ChangeStreamEvent::getBody)
                 .filter(m -> m.isNotFromUser(username))
                 .filterWhen(messageIsForThisUserChat)
-                .map(messageDocument -> new Message(messageDocument.getUsernameFrom(), messageDocument.getContent(), messageDocument.getChatRoomId()));
+                .map(MessageMapper::fromMessageDocument);
     }
 }

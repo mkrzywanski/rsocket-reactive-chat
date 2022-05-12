@@ -1,8 +1,10 @@
 package io.mkrzywanski.chat.app.message;
 
 import io.mkrzywanski.chat.app.message.api.Message;
+import io.mkrzywanski.chat.app.message.api.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,7 +27,8 @@ class MessageService {
 
     @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId, authentication.principal.username)")
     Flux<Message> findByChatId(final UUID chatId, final Page page) {
-        final var pageRequest = PageRequest.of(page.pageNumber(), page.pageSize());
+        final var pageRequest = PageRequest.of(page.pageNumber(), page.pageSize())
+                .withSort(Sort.by(Sort.Direction.DESC, "timestamp"));
         return findByChatId(chatId, pageRequest);
     }
 

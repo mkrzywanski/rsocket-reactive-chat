@@ -3,6 +3,7 @@ package io.mkrzywanski.chat.app.message;
 import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
 import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.InputMessage;
 import io.mkrzywanski.chat.app.message.api.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +25,15 @@ class MessageController {
     private final ChatToUserMappingsHolder chatRoomUserMappings;
     private final MessageRepository messageRepository;
     private final NewMessageWatcher newMessageWatcher;
+    private final InputMessageMapper inputMessageMapper;
 
     MessageController(@Qualifier("mongoChatToUserMappingsHolder") final ChatToUserMappingsHolder chatRoomUserMappings,
                       final MessageRepository messageRepository,
-                      final NewMessageWatcher newMessageWatcher) {
+                      final NewMessageWatcher newMessageWatcher, final InputMessageMapper inputMessageMapper) {
         this.chatRoomUserMappings = chatRoomUserMappings;
         this.messageRepository = messageRepository;
         this.newMessageWatcher = newMessageWatcher;
+        this.inputMessageMapper = inputMessageMapper;
     }
 
     @MessageMapping("create-chat")
@@ -48,8 +51,8 @@ class MessageController {
     }
 
     @MessageMapping("chat-channel")
-    public Flux<Message> handle(final Flux<Message> incomingMessages, @AuthenticationPrincipal final UserDetails user) {
-        final var messages = incomingMessages.map(MessageMapper::toMessageDocument);
+    public Flux<Message> handle(final Flux<InputMessage> incomingMessages, @AuthenticationPrincipal final UserDetails user) {
+        final var messages = incomingMessages.map(inputMessageMapper::fromInput);
         final var incomingMessagesSubscription = messageRepository.saveAll(messages)
                 .then()
                 .subscribeOn(Schedulers.boundedElastic())
