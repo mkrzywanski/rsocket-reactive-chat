@@ -1,4 +1,4 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats.resuming;
 
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;

@@ -1,5 +1,6 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats.read;
 
+import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,11 +11,11 @@ import java.util.Set;
 import java.util.UUID;
 
 @Controller
-class MessageReadController {
+class ChatReadController {
 
     private final ChatToUserMappingsHolder chatToUserMappingsHolder;
 
-    MessageReadController(final ChatToUserMappingsHolder chatToUserMappingsHolder) {
+    ChatReadController(final ChatToUserMappingsHolder chatToUserMappingsHolder) {
         this.chatToUserMappingsHolder = chatToUserMappingsHolder;
     }
 

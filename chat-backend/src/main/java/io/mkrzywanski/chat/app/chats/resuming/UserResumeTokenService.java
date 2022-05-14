@@ -1,4 +1,4 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats.resuming;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonTimestamp;
@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Component
-class UserResumeTokenService {
+public class UserResumeTokenService {
 
     private final UserResumeTokenRepository userResumeTokenRepository;
     private final Clock clock;

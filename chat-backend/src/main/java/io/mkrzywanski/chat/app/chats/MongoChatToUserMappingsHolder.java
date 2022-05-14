@@ -1,4 +1,4 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.chats;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -49,7 +49,8 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
                 .doOnNext(uuids -> log.info("set size {}", uuids.size()));
     }
 
-    Flux<UsernameToChatsDocument> clear() {
+    @Override
+    public Flux<UsernameToChatsDocument> clear() {
         return reactiveMongoTemplate.remove(UsernameToChatsDocument.class)
                 .findAndRemove();
     }

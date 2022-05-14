@@ -1,6 +1,9 @@
 package io.mkrzywanski.chat.app;
 
 import io.mkrzywanski.chat.ChatApplication;
+import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
+import io.mkrzywanski.chat.app.chats.resuming.UserResumeTokenService;
+import io.mkrzywanski.chat.app.message.MessageRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,25 +28,25 @@ import static io.mkrzywanski.chat.app.UserConstants.USER_2;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "spring.rsocket.server.port=0")
 @DirtiesContext
-abstract class ChatBaseTest {
+public abstract class ChatBaseTest {
 
-    RSocketRequester requesterUser1;
-    RSocketRequester requesterUser2;
+    protected RSocketRequester requesterUser1;
+    protected RSocketRequester requesterUser2;
 
     @Autowired
-    RSocketRequester.Builder builder;
+    protected RSocketRequester.Builder builder;
 
     @LocalRSocketServerPort
-    int port;
+    protected int port;
 
     @Autowired
-    MongoChatToUserMappingsHolder chatRoomUserMappings;
+    protected ChatToUserMappingsHolder chatRoomUserMappings;
 
     @Autowired
-    MessageRepository messageRepository;
+    protected MessageRepository messageRepository;
 
     @Autowired
-    UserResumeTokenService userResumeTokenService;
+    protected UserResumeTokenService userResumeTokenService;
 
     @BeforeAll
     public void setupOnce() {

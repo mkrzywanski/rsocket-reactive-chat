@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-final class UserConstants {
-    static final String USER_1 = "user1";
-    static final String USER_2 = "user2";
+public final class UserConstants {
+    public static final String USER_1 = "user1";
+    public static final String USER_2 = "user2";
 }

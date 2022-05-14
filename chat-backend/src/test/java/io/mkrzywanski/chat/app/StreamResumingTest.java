@@ -1,5 +1,9 @@
 package io.mkrzywanski.chat.app;
 
+import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
+import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.InputMessage;
+import io.mkrzywanski.chat.app.message.api.Message;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -96,7 +100,7 @@ class StreamResumingTest extends ChatBaseTest {
         //user2 receives first message and cancel subscription to close connection
         StepVerifier
                 .create(incomingMessagesForUser2)
-                .then(() -> user1Sink.emitNext(new Message(USER_1, "hello from user1", chat), Sinks.EmitFailureHandler.FAIL_FAST))
+                .then(() -> user1Sink.emitNext(new InputMessage(USER_1, "hello from user1", chat), Sinks.EmitFailureHandler.FAIL_FAST))
                 .consumeNextWith(message -> {
                     assertThat(message.usernameFrom()).isEqualTo(USER_1);
                     assertThat(message.content()).isEqualTo("hello from user1");
@@ -106,7 +110,7 @@ class StreamResumingTest extends ChatBaseTest {
                 .verify();
 
         //user1 still sends messages to chat
-        user1Sink.emitNext(new Message(USER_1, "hello from user1 again", chat), Sinks.EmitFailureHandler.FAIL_FAST);
+        user1Sink.emitNext(new InputMessage(USER_1, "hello from user1 again", chat), Sinks.EmitFailureHandler.FAIL_FAST);
 
         //user2 reconnects
         final var incomingMessagesForUser2AfterReconnect = requesterUser2

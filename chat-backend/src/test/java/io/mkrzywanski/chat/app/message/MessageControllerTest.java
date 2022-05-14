@@ -1,5 +1,11 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.ChatBaseTest;
+import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
+import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
+import io.mkrzywanski.chat.app.message.api.InputMessage;
+import io.mkrzywanski.chat.app.message.api.Message;
+import io.mkrzywanski.chat.app.message.api.Page;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
@@ -11,7 +17,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -88,7 +96,7 @@ class MessageControllerTest extends ChatBaseTest {
                 .consumeNextWith(message -> assertThat(message).isTrue())
                 .verifyComplete();
     }
-    
+
 
     @Test
     void user1ShouldGetMessagesFromUser2() throws InterruptedException {
@@ -109,7 +117,7 @@ class MessageControllerTest extends ChatBaseTest {
         assert Boolean.TRUE.equals(joiningResult);
 
         //user1 wants to send this message
-        final var messageFromUser1 = Flux.just(new Message("user1", "hello from user1 test1", chatId));
+        final var messageFromUser1 = Flux.just(new InputMessage("user1", "hello from user1 test1", chatId));
 
         //sends user 1 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser1 = requesterUser1
@@ -118,7 +126,7 @@ class MessageControllerTest extends ChatBaseTest {
                 .retrieveFlux(Message.class);
 
         //user2 message
-        final var messagesFromUser2 = Flux.just(new Message("user2", "hello from user2 test1", chatId));
+        final var messagesFromUser2 = Flux.just(new InputMessage("user2", "hello from user2 test1", chatId));
 
         //sends user 1 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser2 = requesterUser2
@@ -168,14 +176,83 @@ class MessageControllerTest extends ChatBaseTest {
                 .block();
 
         //when
-        final Mono<Set<UUID>> chatIdsMono = requesterUser1
+        final Mono<Set<UUID>> chatIds = requesterUser1
                 .route("get-user-chats")
                 .retrieveMono(new ParameterizedTypeReference<>() {
                 });
 
         //then
-        StepVerifier.create(chatIdsMono)
+        StepVerifier.create(chatIds)
                 .expectNext(Set.of(chatId))
                 .verifyComplete();
     }
+
+    @Test
+    void shouldGetAllChatMessagesForRequestingUser() {
+
+        //given
+        final UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
+        final Instant now = Clock.systemUTC().instant();
+        final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId, now.plusSeconds(1));
+        messageRepository.save(m1).subscribe();
+        final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, now.plusSeconds(2));
+        messageRepository.save(m2).subscribe();
+
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+
+        //when
+        final var messageFlux = requesterUser1
+                .route("chat." + chatId + ".messages")
+                .retrieveFlux(Message.class);
+
+        //then
+        StepVerifier.create(messageFlux)
+                .expectNext(MessageMapper.fromMessageDocument(m2))
+                .expectNext(MessageMapper.fromMessageDocument(m1))
+                .verifyComplete();
+
+    }
+
+    @Test
+    void shouldGetPagedResults() {
+        //given
+        final UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
+        final Instant now = Clock.systemUTC().instant();
+        final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId, now.plusSeconds(1));
+        final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, now.plusSeconds(2));
+        final MessageDocument m3 = new MessageDocument(USER_2, "test message", chatId, now.plusSeconds(3));
+        final MessageDocument m4 = new MessageDocument(USER_2, "test message 2", chatId, now.plusSeconds(4));
+
+        messageRepository.save(m1).subscribe();
+        messageRepository.save(m2).subscribe();
+        messageRepository.save(m3).subscribe();
+        messageRepository.save(m4).subscribe();
+
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+
+        //when
+        final var messageFlux = requesterUser1
+                .route("chat." + chatId + ".messages.paged")
+                .data(new Page(0, 1))
+                .retrieveFlux(Message.class);
+
+        final var messageFlux2 = requesterUser1
+                .route("chat." + chatId + ".messages.paged")
+                .data(new Page(0, 2))
+                .retrieveFlux(Message.class);
+
+        //then
+        StepVerifier.create(messageFlux)
+                .expectNext(MessageMapper.fromMessageDocument(m4))
+                .verifyComplete();
+
+        StepVerifier.create(messageFlux2)
+                .expectNext(MessageMapper.fromMessageDocument(m4))
+                .expectNext(MessageMapper.fromMessageDocument(m3))
+                .verifyComplete();
+    }
+
+
 }
