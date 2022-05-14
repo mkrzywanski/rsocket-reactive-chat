@@ -56,12 +56,12 @@ class MessageController {
         final var incomingMessagesSubscription = messageRepository.saveAll(messages)
                 .then()
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnSubscribe(subscription -> LOG.info("subscribing to user " + user.getUsername() + " input channel"))
+                .doOnSubscribe(subscription -> LOG.info("subscribing to user {} input channel", user.getUsername()))
                 .subscribe();
         final var userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
         return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
                 .doOnNext(message -> LOG.info("Message reply {}", message))
-                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : " + user.getUsername()))
+                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : {}", user.getUsername()))
                 .doOnCancel(() -> {
                     LOG.info("Cancelled");
                     incomingMessagesSubscription.dispose();

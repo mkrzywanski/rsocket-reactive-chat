@@ -47,7 +47,7 @@ class NewMessageWatcher {
                 .watchCollection("messages")
                 .resumeAt(bsonTimestamp)
                 .listen()
-                .doOnNext(e -> LOGGER.info("event " + e))
+                .doOnNext(e -> LOGGER.info("event {}", e))
                 .filter(event -> event.getOperationType() == INSERT)
                 .map(ChangeStreamEvent::getBody)
                 .filter(m -> m.isNotFromUser(username))
