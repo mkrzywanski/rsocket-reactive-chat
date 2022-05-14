@@ -3,7 +3,6 @@ package io.mkrzywanski.chat.app.message;
 import io.mkrzywanski.chat.app.message.api.Message;
 import io.mkrzywanski.chat.app.message.api.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -22,18 +21,19 @@ class MessageService {
 
     @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId, authentication.principal.username)")
     Flux<Message> findByChatId(final UUID chatId) {
-        return findByChatId(chatId, Pageable.unpaged());
+        return messageRepository.findByChatRoomId(chatId, byTimestampDesc())
+                .map(MessageMapper::fromMessageDocument);
     }
 
     @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId, authentication.principal.username)")
     Flux<Message> findByChatId(final UUID chatId, final Page page) {
         final var pageRequest = PageRequest.of(page.pageNumber(), page.pageSize())
-                .withSort(Sort.by(Sort.Direction.DESC, "timestamp"));
-        return findByChatId(chatId, pageRequest);
+                .withSort(byTimestampDesc());
+        return messageRepository.findByChatRoomId(chatId, pageRequest)
+                .map(MessageMapper::fromMessageDocument);
     }
 
-    private Flux<Message> findByChatId(final UUID chatId, final Pageable page) {
-        return messageRepository.findByChatRoomId(chatId, page)
-                .map(MessageMapper::fromMessageDocument);
+    private Sort byTimestampDesc() {
+        return Sort.by(Sort.Direction.DESC, "timestamp");
     }
 }

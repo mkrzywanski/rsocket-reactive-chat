@@ -208,8 +208,8 @@ class MessageControllerTest extends ChatBaseTest {
 
         //then
         StepVerifier.create(messageFlux)
-                .expectNext(MessageMapper.fromMessageDocument(m1))
                 .expectNext(MessageMapper.fromMessageDocument(m2))
+                .expectNext(MessageMapper.fromMessageDocument(m1))
                 .verifyComplete();
 
     }
@@ -218,10 +218,11 @@ class MessageControllerTest extends ChatBaseTest {
     void shouldGetPagedResults() {
         //given
         final UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
-        final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId, Clock.systemUTC().instant());
-        final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, Clock.systemUTC().instant());
-        final MessageDocument m3 = new MessageDocument(USER_2, "test message", chatId, Clock.systemUTC().instant());
-        final MessageDocument m4 = new MessageDocument(USER_2, "test message 2", chatId, Clock.systemUTC().instant());
+        final Instant now = Clock.systemUTC().instant();
+        final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId, now.plusSeconds(1));
+        final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, now.plusSeconds(2));
+        final MessageDocument m3 = new MessageDocument(USER_2, "test message", chatId, now.plusSeconds(3));
+        final MessageDocument m4 = new MessageDocument(USER_2, "test message 2", chatId, now.plusSeconds(4));
 
         messageRepository.save(m1).subscribe();
         messageRepository.save(m2).subscribe();
@@ -244,12 +245,12 @@ class MessageControllerTest extends ChatBaseTest {
 
         //then
         StepVerifier.create(messageFlux)
-                .expectNext(MessageMapper.fromMessageDocument(m1))
+                .expectNext(MessageMapper.fromMessageDocument(m4))
                 .verifyComplete();
 
         StepVerifier.create(messageFlux2)
-                .expectNext(MessageMapper.fromMessageDocument(m1))
-                .expectNext(MessageMapper.fromMessageDocument(m2))
+                .expectNext(MessageMapper.fromMessageDocument(m4))
+                .expectNext(MessageMapper.fromMessageDocument(m3))
                 .verifyComplete();
     }
 
