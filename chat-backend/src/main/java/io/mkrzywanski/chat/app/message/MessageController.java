@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+//import org.springframework.security.core.annotation.AuthenticationPrincipal;
+//import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,36 +36,41 @@ class MessageController {
         this.inputMessageMapper = inputMessageMapper;
     }
 
-    @MessageMapping("create-chat")
-    public Mono<ChatCreatedResponse> createChat(final String join, @AuthenticationPrincipal final UserDetails user) {
-        LOG.info("Creating new chat");
-        final UUID chatId = UUID.randomUUID();
-        return chatRoomUserMappings.putUserToChat(user.getUsername(), chatId)
-                .log()
-                .map(ignored -> new ChatCreatedResponse(chatId));
+//    @MessageMapping("create-chat")
+//    public Mono<ChatCreatedResponse> createChat(final String join, @AuthenticationPrincipal final UserDetails user) {
+//        LOG.info("Creating new chat");
+//        final UUID chatId = UUID.randomUUID();
+//        return chatRoomUserMappings.putUserToChat(user.getUsername(), chatId)
+//                .log()
+//                .map(ignored -> new ChatCreatedResponse(chatId));
+//    }
+//
+//    @MessageMapping("join-chat")
+//    public Mono<Boolean> joinChat(final JoinChatRequest joinChatRequest, @AuthenticationPrincipal final UserDetails user) {
+//        return chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId()).log();
+//    }
+
+    @MessageMapping("test")
+    public Flux<String> test(Flux<String> stringFlux) {
+        return stringFlux.map(String::toUpperCase);
     }
 
-    @MessageMapping("join-chat")
-    public Mono<Boolean> joinChat(final JoinChatRequest joinChatRequest, @AuthenticationPrincipal final UserDetails user) {
-        return chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId()).log();
-    }
-
-    @MessageMapping("chat-channel")
-    public Flux<Message> handle(final Flux<InputMessage> incomingMessages, @AuthenticationPrincipal final UserDetails user) {
-        final var messages = incomingMessages.map(inputMessageMapper::fromInput);
-        final var incomingMessagesSubscription = messageRepository.saveAll(messages)
-                .then()
-                .subscribeOn(Schedulers.boundedElastic())
-                .doOnSubscribe(subscription -> LOG.info("subscribing to user {} input channel", user.getUsername()))
-                .subscribe();
-        final var userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
-        return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
-                .doOnNext(message -> LOG.info("Message reply {}", message))
-                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : {}", user.getUsername()))
-                .doOnCancel(() -> {
-                    LOG.info("Cancelled");
-                    incomingMessagesSubscription.dispose();
-                })
-                .doOnError(throwable -> LOG.error(throwable.getMessage()));
-    }
+//    @MessageMapping("chat-channel")
+//    public Flux<Message> handle(final Flux<InputMessage> incomingMessages, @AuthenticationPrincipal final UserDetails user) {
+//        final var messages = incomingMessages.map(inputMessageMapper::fromInput);
+//        final var incomingMessagesSubscription = messageRepository.saveAll(messages)
+//                .then()
+//                .subscribeOn(Schedulers.boundedElastic())
+//                .doOnSubscribe(subscription -> LOG.info("subscribing to user {} input channel", user.getUsername()))
+//                .subscribe();
+//        final var userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
+//        return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
+//                .doOnNext(message -> LOG.info("Message reply {}", message))
+//                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : {}", user.getUsername()))
+//                .doOnCancel(() -> {
+//                    LOG.info("Cancelled");
+//                    incomingMessagesSubscription.dispose();
+//                })
+//                .doOnError(throwable -> LOG.error(throwable.getMessage()));
+//    }
 }
