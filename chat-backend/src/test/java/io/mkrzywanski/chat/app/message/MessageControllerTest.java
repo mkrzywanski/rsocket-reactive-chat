@@ -23,13 +23,13 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import static io.mkrzywanski.chat.app.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.DATABASE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.PASSWORD;
-import static io.mkrzywanski.chat.app.MongoTestConstants.USERNAME;
-import static io.mkrzywanski.chat.app.MongoTestConstants.WAIT_STRATEGY;
-import static io.mkrzywanski.chat.app.UserConstants.USER_1;
-import static io.mkrzywanski.chat.app.UserConstants.USER_2;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.DATABASE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.PASSWORD;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.USERNAME;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.WAIT_STRATEGY;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_1;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageControllerTest extends ChatBaseTest {
@@ -254,5 +254,28 @@ class MessageControllerTest extends ChatBaseTest {
                 .verifyComplete();
     }
 
+    @Test
+    void shouldSendMessageWithFireAndForget() {
+        final var chatId = requesterUser1
+                .route("create-chat")
+                .data("create")
+                .retrieveMono(ChatCreatedResponse.class)
+                .map(ChatCreatedResponse::chatId)
+                .block();
 
+        final var mono = requesterUser1
+                .route("send-message")
+                .data(new InputMessage("user1", "hello from user1 test1", chatId))
+                .retrieveMono(Void.class);
+
+        StepVerifier.create(mono)
+                .verifyComplete();
+
+        StepVerifier.create(messageRepository.findAll())
+                .consumeNextWith(messageDocument -> {
+                    assertThat(messageDocument.getUsernameFrom()).isEqualTo("user1");
+                })
+                .verifyComplete();
+
+    }
 }

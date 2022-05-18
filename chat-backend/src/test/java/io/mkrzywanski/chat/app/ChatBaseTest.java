@@ -21,8 +21,8 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 import static io.mkrzywanski.chat.app.RSocketConstants.SIMPLE_AUTH;
-import static io.mkrzywanski.chat.app.UserConstants.USER_1;
-import static io.mkrzywanski.chat.app.UserConstants.USER_2;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_1;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_2;
 
 @SpringBootTest(classes = {ChatApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

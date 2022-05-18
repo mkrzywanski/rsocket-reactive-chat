@@ -1,5 +1,6 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.ChatBaseTest;
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
 import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
 import io.mkrzywanski.chat.app.message.api.InputMessage;
@@ -18,13 +19,13 @@ import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.mkrzywanski.chat.app.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.DATABASE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.PASSWORD;
-import static io.mkrzywanski.chat.app.MongoTestConstants.USERNAME;
-import static io.mkrzywanski.chat.app.MongoTestConstants.WAIT_STRATEGY;
-import static io.mkrzywanski.chat.app.UserConstants.USER_1;
-import static io.mkrzywanski.chat.app.UserConstants.USER_2;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.DATABASE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.PASSWORD;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.USERNAME;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.WAIT_STRATEGY;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_1;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MultipleConcurrentUsersTest extends ChatBaseTest {

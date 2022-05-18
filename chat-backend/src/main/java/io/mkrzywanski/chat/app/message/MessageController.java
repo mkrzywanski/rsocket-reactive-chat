@@ -68,4 +68,20 @@ class MessageController {
                 })
                 .doOnError(throwable -> LOG.error(throwable.getMessage()));
     }
+
+    @MessageMapping("send-message")
+    public Mono<Void> handle(final InputMessage inputMessage, @AuthenticationPrincipal final UserDetails user) {
+        MessageDocument messageDocument = inputMessageMapper.fromInput(inputMessage);
+        return messageRepository.save(messageDocument).then();
+    }
+
+    @MessageMapping("messages-stream")
+    public Flux<Message> handle(@AuthenticationPrincipal final UserDetails user) {
+        final var userChats = chatRoomUserMappings.getUserChatRooms(user.getUsername());
+        return newMessageWatcher.newMessagesForChats(userChats, user.getUsername())
+                .doOnNext(message -> LOG.info("Message reply {}", message))
+                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : {}", user.getUsername()))
+                .doOnError(throwable -> LOG.error(throwable.getMessage()));
+    }
+
 }

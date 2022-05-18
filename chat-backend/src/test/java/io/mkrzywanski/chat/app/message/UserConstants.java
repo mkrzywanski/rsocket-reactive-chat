@@ -1,4 +1,4 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
