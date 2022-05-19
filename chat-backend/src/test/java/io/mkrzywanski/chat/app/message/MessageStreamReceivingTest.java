@@ -4,7 +4,6 @@ import io.mkrzywanski.chat.app.ChatBaseTest;
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
 import io.mkrzywanski.chat.app.message.api.Message;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
@@ -19,14 +18,14 @@ class MessageStreamReceivingTest extends ChatBaseTest {
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();
-        MessageDocument entity = new MessageDocument("user2", "hello", chatId, Instant.now());
+        final var messageDocument = new MessageDocument("user2", "hello", chatId, Instant.now());
 
-        Flux<Message> messageFlux = requesterUser1.route("messages-stream")
+        final var messageStream = requesterUser1.route("messages-stream")
                 .retrieveFlux(Message.class);
 
-        StepVerifier.create(messageFlux)
-                .then(() -> messageRepository.save(entity))
-                .expectNext(MessageMapper.fromMessageDocument(entity))
+        StepVerifier.create(messageStream)
+                .then(() -> messageRepository.save(messageDocument))
+                .expectNext(MessageMapper.fromMessageDocument(messageDocument))
                 .thenCancel();
     }
 }

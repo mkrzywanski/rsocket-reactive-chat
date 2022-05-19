@@ -71,7 +71,7 @@ class MessageController {
 
     @MessageMapping("send-message")
     public Mono<Void> handle(final InputMessage inputMessage, @AuthenticationPrincipal final UserDetails user) {
-        MessageDocument messageDocument = inputMessageMapper.fromInput(inputMessage);
+        final var messageDocument = inputMessageMapper.fromInput(inputMessage);
         return messageRepository.save(messageDocument).then();
     }
 
