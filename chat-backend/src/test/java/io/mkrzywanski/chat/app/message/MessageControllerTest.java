@@ -23,13 +23,13 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import static io.mkrzywanski.chat.app.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.DATABASE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.PASSWORD;
-import static io.mkrzywanski.chat.app.MongoTestConstants.USERNAME;
-import static io.mkrzywanski.chat.app.MongoTestConstants.WAIT_STRATEGY;
-import static io.mkrzywanski.chat.app.UserConstants.USER_1;
-import static io.mkrzywanski.chat.app.UserConstants.USER_2;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.DATABASE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.PASSWORD;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.USERNAME;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.WAIT_STRATEGY;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_1;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageControllerTest extends ChatBaseTest {
@@ -194,12 +194,12 @@ class MessageControllerTest extends ChatBaseTest {
         final UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
         final Instant now = Clock.systemUTC().instant();
         final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId, now.plusSeconds(1));
-        messageRepository.save(m1).subscribe();
+        messageRepository.save(m1).block();
         final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, now.plusSeconds(2));
-        messageRepository.save(m2).subscribe();
+        messageRepository.save(m2).block();
 
-        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
-        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).block();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).block();
 
         //when
         final var messageFlux = requesterUser1
@@ -224,13 +224,14 @@ class MessageControllerTest extends ChatBaseTest {
         final MessageDocument m3 = new MessageDocument(USER_2, "test message", chatId, now.plusSeconds(3));
         final MessageDocument m4 = new MessageDocument(USER_2, "test message 2", chatId, now.plusSeconds(4));
 
-        messageRepository.save(m1).subscribe();
-        messageRepository.save(m2).subscribe();
-        messageRepository.save(m3).subscribe();
-        messageRepository.save(m4).subscribe();
+        messageRepository.save(m1).block();
+        messageRepository.save(m2).block();
+        messageRepository.save(m3).block();
+        messageRepository.save(m4).block();
 
-        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
-        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+        System.out.println("test thread " + Thread.currentThread().getName());
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).block();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).block();
 
         //when
         final var messageFlux = requesterUser1
@@ -253,6 +254,4 @@ class MessageControllerTest extends ChatBaseTest {
                 .expectNext(MessageMapper.fromMessageDocument(m3))
                 .verifyComplete();
     }
-
-
 }

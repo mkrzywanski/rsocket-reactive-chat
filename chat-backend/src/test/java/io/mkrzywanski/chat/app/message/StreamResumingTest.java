@@ -1,5 +1,6 @@
-package io.mkrzywanski.chat.app;
+package io.mkrzywanski.chat.app.message;
 
+import io.mkrzywanski.chat.app.ChatBaseTest;
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
 import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
 import io.mkrzywanski.chat.app.message.api.InputMessage;
@@ -16,18 +17,17 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static io.mkrzywanski.chat.app.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.DATABASE;
-import static io.mkrzywanski.chat.app.MongoTestConstants.PASSWORD;
-import static io.mkrzywanski.chat.app.MongoTestConstants.USERNAME;
-import static io.mkrzywanski.chat.app.MongoTestConstants.WAIT_STRATEGY;
-import static io.mkrzywanski.chat.app.UserConstants.USER_1;
-import static io.mkrzywanski.chat.app.UserConstants.USER_2;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.DATABASE;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.PASSWORD;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.USERNAME;
+import static io.mkrzywanski.chat.app.message.MongoTestConstants.WAIT_STRATEGY;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_1;
+import static io.mkrzywanski.chat.app.message.UserConstants.USER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MultipleConcurrentUsersTest extends ChatBaseTest {
+class StreamResumingTest extends ChatBaseTest {
 
     private static final GenericContainer<?> MONGO_DB_CONTAINER = new GenericContainer<>(BITNAMI_MONGODB_IMAGE)
             .withEnv("MONGODB_USERNAME", USERNAME)
@@ -59,18 +59,18 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
     }
 
     @Test
-    void userShouldReceiveMessagesThatArriveOnChatThatHeJoinedAfterOpeningTheChannel() {
-        //user1 creates first chat
-        final UUID firstChat = requesterUser1
+    void userShouldReceiveMessagesAfterReconnect() throws InterruptedException {
+        //user1 creates chat
+        final UUID chat = requesterUser1
                 .route("create-chat")
                 .data("create")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();
 
-        //user2 joins first chat
+        //user2 joins chat
         final Boolean joiningResult = requesterUser2.route("join-chat")
-                .data(new JoinChatRequest(firstChat))
+                .data(new JoinChatRequest(chat))
                 .retrieveMono(Boolean.class)
                 .block();
 
@@ -80,13 +80,13 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
         final var user1Sink = Sinks.many().unicast().onBackpressureBuffer();
         final var messageFromUser1 = user1Sink.asFlux();
 
-        //sends user 1 messages and awaits for messages from chats that this user is part of
+        //sends user1 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser1 = requesterUser1
                 .route("chat-channel")
                 .data(messageFromUser1)
                 .retrieveFlux(Message.class);
 
-        //sends user 1 messages and awaits for messages from chats that this user is part of
+        //sends user2 messages and awaits for messages from chats that this user is part of
         final var incomingMessagesForUser2 = requesterUser2
                 .route("chat-channel")
                 .data(Flux.empty())
@@ -98,44 +98,35 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
                 .delaySubscription(Duration.ofSeconds(1))
                 .subscribe();
 
-        final var secondChat = new AtomicReference<UUID>();
-
+        //user2 receives first message and cancel subscription to close connection
         StepVerifier
                 .create(incomingMessagesForUser2)
-                .then(() -> user1Sink.emitNext(new InputMessage(USER_1, "hello from user1", firstChat), Sinks.EmitFailureHandler.FAIL_FAST))
+                .then(() -> user1Sink.emitNext(new InputMessage(USER_1, "hello from user1", chat), Sinks.EmitFailureHandler.FAIL_FAST))
                 .consumeNextWith(message -> {
                     assertThat(message.usernameFrom()).isEqualTo(USER_1);
                     assertThat(message.content()).isEqualTo("hello from user1");
-                    assertThat(message.chatRoomId()).isEqualTo(firstChat);
-                }).then(() -> {
-                    //user1 creates anotherChat
-                    final UUID chatId = requesterUser1
-                            .route("create-chat")
-                            .data("create")
-                            .retrieveMono(ChatCreatedResponse.class)
-                            .map(ChatCreatedResponse::chatId)
-                            .block();
-                    secondChat.set(chatId);
-
-                    //user2 joins second chat
-                    final Boolean joiningSecondChatResult = requesterUser2.route("join-chat")
-                            .data(new JoinChatRequest(chatId))
-                            .retrieveMono(Boolean.class)
-                            .block();
-                    assert Boolean.TRUE.equals(joiningSecondChatResult);
-
-                    //user1 sends message to another chat
-                    user1Sink.emitNext(new InputMessage("user1", "hello from user1 on another chat", secondChat.get()), Sinks.EmitFailureHandler.FAIL_FAST);
-
-                })
-                .consumeNextWith(message -> {
-                    //user2 should receive message from user1 on second chat
-                    assertThat(message.usernameFrom()).isEqualTo("user1");
-                    assertThat(message.content()).isEqualTo("hello from user1 on another chat");
-                    assertThat(message.chatRoomId()).isEqualTo(secondChat.get());
+                    assertThat(message.chatRoomId()).isEqualTo(chat);
                 })
                 .thenCancel()
                 .verify();
+
+        //user1 still sends messages to chat
+        user1Sink.emitNext(new InputMessage(USER_1, "hello from user1 again", chat), Sinks.EmitFailureHandler.FAIL_FAST);
+
+        //user2 reconnects
+        final var incomingMessagesForUser2AfterReconnect = requesterUser2
+                .route("chat-channel")
+                .data(Flux.empty())
+                .retrieveFlux(Message.class);
+
+        //user2 should receive messages after reconnect
+        StepVerifier
+                .create(incomingMessagesForUser2AfterReconnect)
+                .consumeNextWith(message -> {
+                    assertThat(message.usernameFrom()).isEqualTo(USER_1);
+                    assertThat(message.content()).isEqualTo("hello from user1 again");
+                    assertThat(message.chatRoomId()).isEqualTo(chat);
+                });
 
         final var user1Token = userResumeTokenService.getResumeTimestampFor(USER_1);
         StepVerifier.create(user1Token)
