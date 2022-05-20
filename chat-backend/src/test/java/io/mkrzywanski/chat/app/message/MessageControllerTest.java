@@ -194,12 +194,12 @@ class MessageControllerTest extends ChatBaseTest {
         final UUID chatId = UUID.fromString("41bd1c40-d320-475b-bd61-16146e275ee4");
         final Instant now = Clock.systemUTC().instant();
         final MessageDocument m1 = new MessageDocument(USER_1, "hello user 2", chatId, now.plusSeconds(1));
-        messageRepository.save(m1).subscribe();
+        messageRepository.save(m1).block();
         final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, now.plusSeconds(2));
-        messageRepository.save(m2).subscribe();
+        messageRepository.save(m2).block();
 
-        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
-        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).block();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).block();
 
         //when
         final var messageFlux = requesterUser1
@@ -224,13 +224,14 @@ class MessageControllerTest extends ChatBaseTest {
         final MessageDocument m3 = new MessageDocument(USER_2, "test message", chatId, now.plusSeconds(3));
         final MessageDocument m4 = new MessageDocument(USER_2, "test message 2", chatId, now.plusSeconds(4));
 
-//        messageRepository.save(m1).subscribe();
-//        messageRepository.save(m2).subscribe();
-        messageRepository.save(m3).subscribe();
-        messageRepository.save(m4).subscribe();
+        messageRepository.save(m1).block();
+        messageRepository.save(m2).block();
+        messageRepository.save(m3).block();
+        messageRepository.save(m4).block();
 
-        chatRoomUserMappings.putUserToChat(USER_1, chatId).subscribe();
-        chatRoomUserMappings.putUserToChat(USER_2, chatId).subscribe();
+        System.out.println("test thread " + Thread.currentThread().getName());
+        chatRoomUserMappings.putUserToChat(USER_1, chatId).block();
+        chatRoomUserMappings.putUserToChat(USER_2, chatId).block();
 
         //when
         final var messageFlux = requesterUser1

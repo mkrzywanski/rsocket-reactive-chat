@@ -61,7 +61,7 @@ public abstract class ChatBaseTest {
         final var clearUser1Token = userResumeTokenService.deleteTokenForUser(USER_1);
         final var clearUser2Token = userResumeTokenService.deleteTokenForUser(USER_2);
 
-        Mono.when(clearUserChatMappings, deleteMessages, clearUser1Token, clearUser2Token).subscribe();
+        Mono.when(clearUserChatMappings, deleteMessages, clearUser1Token, clearUser2Token).block();
     }
 
     @AfterAll
