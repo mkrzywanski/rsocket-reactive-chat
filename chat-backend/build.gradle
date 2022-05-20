@@ -8,7 +8,7 @@ plugins {
 }
 
 ext {
-	testcontainersVersion = '1.17.1'
+	testcontainersVersion = '1.17.2'
 	lombokVersion = '1.18.24'
 }
 
