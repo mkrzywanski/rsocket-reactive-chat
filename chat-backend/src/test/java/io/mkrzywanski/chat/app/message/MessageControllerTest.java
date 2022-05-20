@@ -224,8 +224,8 @@ class MessageControllerTest extends ChatBaseTest {
         final MessageDocument m3 = new MessageDocument(USER_2, "test message", chatId, now.plusSeconds(3));
         final MessageDocument m4 = new MessageDocument(USER_2, "test message 2", chatId, now.plusSeconds(4));
 
-        messageRepository.save(m1).subscribe();
-        messageRepository.save(m2).subscribe();
+//        messageRepository.save(m1).subscribe();
+//        messageRepository.save(m2).subscribe();
         messageRepository.save(m3).subscribe();
         messageRepository.save(m4).subscribe();
 
@@ -252,30 +252,5 @@ class MessageControllerTest extends ChatBaseTest {
                 .expectNext(MessageMapper.fromMessageDocument(m4))
                 .expectNext(MessageMapper.fromMessageDocument(m3))
                 .verifyComplete();
-    }
-
-    @Test
-    void shouldSendMessageWithFireAndForget() {
-        final var chatId = requesterUser1
-                .route("create-chat")
-                .data("create")
-                .retrieveMono(ChatCreatedResponse.class)
-                .map(ChatCreatedResponse::chatId)
-                .block();
-
-        final var mono = requesterUser1
-                .route("send-message")
-                .data(new InputMessage("user1", "hello from user1 test1", chatId))
-                .retrieveMono(Void.class);
-
-        StepVerifier.create(mono)
-                .verifyComplete();
-
-        StepVerifier.create(messageRepository.findAll())
-                .consumeNextWith(messageDocument -> {
-                    assertThat(messageDocument.getUsernameFrom()).isEqualTo("user1");
-                })
-                .verifyComplete();
-
     }
 }

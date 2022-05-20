@@ -2,7 +2,7 @@ package io.mkrzywanski.chat.app.message;
 
 import io.mkrzywanski.chat.app.ChatBaseTest;
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
-import io.mkrzywanski.chat.app.message.api.Message;
+import io.mkrzywanski.chat.app.message.api.InputMessage;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -10,15 +10,14 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import reactor.test.StepVerifier;
 
-import java.time.Instant;
-
 import static io.mkrzywanski.chat.app.message.MongoTestConstants.BITNAMI_MONGODB_IMAGE;
 import static io.mkrzywanski.chat.app.message.MongoTestConstants.DATABASE;
 import static io.mkrzywanski.chat.app.message.MongoTestConstants.PASSWORD;
 import static io.mkrzywanski.chat.app.message.MongoTestConstants.USERNAME;
 import static io.mkrzywanski.chat.app.message.MongoTestConstants.WAIT_STRATEGY;
+import static org.assertj.core.api.Assertions.assertThat;
 
-class MessageStreamReceivingTest extends ChatBaseTest {
+class SendingMessageTest extends ChatBaseTest {
 
     private static final GenericContainer<?> MONGO_DB_CONTAINER = new GenericContainer<>(BITNAMI_MONGODB_IMAGE)
             .withEnv("MONGODB_USERNAME", USERNAME)
@@ -51,21 +50,27 @@ class MessageStreamReceivingTest extends ChatBaseTest {
     }
 
     @Test
-    void shouldReceiveStreamOfMessages() {
+    void shouldSendMessageWithFireAndForget() {
         final var chatId = requesterUser1
                 .route("create-chat")
                 .data("create")
                 .retrieveMono(ChatCreatedResponse.class)
                 .map(ChatCreatedResponse::chatId)
                 .block();
-        final var messageDocument = new MessageDocument("user2", "hello", chatId, Instant.now());
 
-        final var messageStream = requesterUser1.route("messages-stream")
-                .retrieveFlux(Message.class);
+        final var mono = requesterUser1
+                .route("send-message")
+                .data(new InputMessage("user1", "hello from user1 test1", chatId))
+                .retrieveMono(Void.class);
 
-        StepVerifier.create(messageStream)
-                .then(() -> messageRepository.save(messageDocument))
-                .expectNext(MessageMapper.fromMessageDocument(messageDocument))
-                .thenCancel();
+        StepVerifier.create(mono)
+                .verifyComplete();
+
+        StepVerifier.create(messageRepository.findAll())
+                .consumeNextWith(messageDocument -> {
+                    assertThat(messageDocument.getUsernameFrom()).isEqualTo("user1");
+                })
+                .verifyComplete();
+
     }
 }
