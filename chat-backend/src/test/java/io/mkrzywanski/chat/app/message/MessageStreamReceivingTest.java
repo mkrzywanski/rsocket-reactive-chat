@@ -64,7 +64,7 @@ class MessageStreamReceivingTest extends ChatBaseTest {
                 .retrieveFlux(Message.class);
 
         StepVerifier.create(messageStream)
-                .then(() -> messageRepository.save(messageDocument))
+                .then(() -> messageRepository.save(messageDocument).block())
                 .expectNext(MessageMapper.fromMessageDocument(messageDocument))
                 .thenCancel();
     }
