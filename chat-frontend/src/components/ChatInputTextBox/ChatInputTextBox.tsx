@@ -2,7 +2,7 @@ import React, { ChangeEvent, ChangeEventHandler, FC, useState } from 'react';
 import styles from './ChatInputTextBox.module.css';
 
 export interface ChatInputTextBoxProps {
-  send : (content : String) => void
+  send : (content : string) => void
 }
 
 const ChatInputTextBox: FC<ChatInputTextBoxProps> = (props) => {
@@ -12,8 +12,8 @@ const ChatInputTextBox: FC<ChatInputTextBoxProps> = (props) => {
   return (
     <div className={styles.ChatInputTextBox} data-testid="ChatInputTextBox">
       <div>Input</div>
-      <textarea onChange={handleTextChange}>{text}</textarea>
-      <button onClick={(event) => props.send("a")}>Send</button>
+      <textarea onChange={handleTextChange} value={text}></textarea>
+      <button onClick={(event) => props.send(text)}>Send</button>
     </div>
   )
 };

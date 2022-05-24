@@ -1,8 +1,9 @@
 import React, { lazy, Suspense } from 'react';
+import { ChatMessagesFeedProps } from './ChatMessagesFeed';
 
 const LazyChatMessagesFeed = lazy(() => import('./ChatMessagesFeed'));
 
-const ChatMessagesFeed = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const ChatMessagesFeed = (props: ChatMessagesFeedProps) => (
   <Suspense fallback={null}>
     <LazyChatMessagesFeed {...props} />
   </Suspense>

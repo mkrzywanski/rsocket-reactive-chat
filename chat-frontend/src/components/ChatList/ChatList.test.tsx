@@ -5,7 +5,7 @@ import ChatList from './ChatList';
 
 describe('<ChatList />', () => {
   test('it should mount', () => {
-    render(<ChatList chatList={new Array(0)}/>);
+    render(<ChatList chatList={new Set<string>()} chatOnClick={(e) => {}}/>);
     
     const chatList = screen.getByTestId('ChatList');
 

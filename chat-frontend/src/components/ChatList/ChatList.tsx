@@ -6,13 +6,23 @@ export interface ChatInfo {
 }
 
 export interface ChatListProps {
-  chatList : Array<ChatInfo>
+  chatList: Set<string>
+  chatOnClick : (chatId : string) => void
 }
 
-const ChatList: FC<ChatListProps> = (props : ChatListProps) => (
-  <div className={styles.ChatList} data-testid="ChatList">
-    ChatList Component
-  </div>
-);
+const ChatList: FC<ChatListProps> = (props: ChatListProps) => {
+  return (
+    <div className={styles.ChatList} data-testid="ChatList">
+      {
+        Array.from(props.chatList).map((item, index) => (
+          <div className="indent" key={index} onClick={e => props.chatOnClick(item)}>
+            {item}
+          </div>
+        ))
+      }
+    </div>
+  )
+
+};
 
 export default ChatList;

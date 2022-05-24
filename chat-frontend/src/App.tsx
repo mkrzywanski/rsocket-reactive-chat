@@ -3,6 +3,7 @@ import './App.css';
 import ChatWindow from './components/ChatWindow/ChatWindow';
 
 function App() {
+  console.log("PAPAPAPA")
   return (
     <div className="App">
       <ChatWindow/>

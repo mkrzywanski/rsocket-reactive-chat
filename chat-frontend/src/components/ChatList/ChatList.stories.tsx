@@ -5,7 +5,7 @@ export default {
   title: "ChatList",
 };
 
-export const Default = () => <ChatList chatList={new Array(0)}/>;
+export const Default = () => <ChatList chatList={new Set()} chatOnClick={(e) => {}}/>;
 
 Default.story = {
   name: 'default',

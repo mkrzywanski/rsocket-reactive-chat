@@ -1,8 +1,6 @@
 package io.mkrzywanski.chat.app.message;
 
 import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
-import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
-import io.mkrzywanski.chat.app.chats.api.JoinChatRequest;
 import io.mkrzywanski.chat.app.message.api.InputMessage;
 import io.mkrzywanski.chat.app.message.api.Message;
 import org.slf4j.Logger;
@@ -15,8 +13,6 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.UUID;
 
 @Controller
 class MessageController {
@@ -34,20 +30,6 @@ class MessageController {
         this.messageRepository = messageRepository;
         this.newMessageWatcher = newMessageWatcher;
         this.inputMessageMapper = inputMessageMapper;
-    }
-
-    @MessageMapping("create-chat")
-    public Mono<ChatCreatedResponse> createChat(final String join, @AuthenticationPrincipal final UserDetails user) {
-        LOG.info("Creating new chat");
-        final UUID chatId = UUID.randomUUID();
-        return chatRoomUserMappings.putUserToChat(user.getUsername(), chatId)
-                .log()
-                .map(ignored -> new ChatCreatedResponse(chatId));
-    }
-
-    @MessageMapping("join-chat")
-    public Mono<Boolean> joinChat(final JoinChatRequest joinChatRequest, @AuthenticationPrincipal final UserDetails user) {
-        return chatRoomUserMappings.putUserToChat(user.getUsername(), joinChatRequest.chatId()).log();
     }
 
     @MessageMapping("chat-channel")
@@ -70,9 +52,10 @@ class MessageController {
     }
 
     @MessageMapping("send-message")
-    public Mono<Void> handle(final InputMessage inputMessage, @AuthenticationPrincipal final UserDetails user) {
+    public Mono<Message> handle(final InputMessage inputMessage, @AuthenticationPrincipal final UserDetails user) {
         final var messageDocument = inputMessageMapper.fromInput(inputMessage);
-        return messageRepository.save(messageDocument).log().then();
+        return messageRepository.save(messageDocument)
+                .map(MessageMapper::fromMessageDocument);
     }
 
     @MessageMapping("messages-stream")
