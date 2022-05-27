@@ -1,9 +1,12 @@
+import { useKeycloak } from '@react-keycloak/web';
 import React, { FC } from 'react';
 import styles from './Nav.module.css';
 
 interface NavProps { }
 
 const Nav: FC<NavProps> = () => {
+  const { keycloak, initialized } = useKeycloak();
+
   return (
     <div className={styles.Nav} data-testid="Nav">
       <div className="top-0 w-full flex flex-wrap">
@@ -20,16 +23,35 @@ const Nav: FC<NavProps> = () => {
                   </a>
                 </li>
                 <li>
-                  <a className="hover:text-blue-800" href="/secured">
+                  <a className="hover:text-blue-800" href="/chat">
                     Secured Page
                   </a>
                 </li>
               </ul>
               <div className="hidden xl:flex items-center space-x-5">
-                <div className="hover:text-gray-200">
-                  <h1>Login</h1>
-                </div>
-              </div>
+               <div className="hover:text-gray-200">
+                 {!keycloak.authenticated && (
+                   <button
+                     type="button"
+                     className="text-blue-800"
+                     onClick={() => keycloak.login()}
+                   >
+                     Login
+                   </button>
+                 )}
+
+                 {!!keycloak.authenticated && (
+                   <button
+                     type="button"
+                     className="text-blue-800"
+                     onClick={() => keycloak.logout()}
+                   >
+                     Logout ({keycloak.tokenParsed?.preferred_username})
+                   </button>
+                 )}
+               </div>
+             </div>
+          
             </div>
           </nav>
         </section>
