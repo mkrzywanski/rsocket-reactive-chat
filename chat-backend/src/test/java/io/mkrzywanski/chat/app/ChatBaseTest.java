@@ -4,6 +4,10 @@ import io.mkrzywanski.chat.ChatApplication;
 import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
 import io.mkrzywanski.chat.app.chats.resuming.UserResumeTokenService;
 import io.mkrzywanski.chat.app.message.MessageRepository;
+import io.mkrzywanski.chat.keycloak.KeyCloakAccess;
+import io.mkrzywanski.chat.keycloak.KeyCloakContainer;
+import io.mkrzywanski.chat.keycloak.KeyCloakProperties;
+import io.mkrzywanski.chat.keycloak.KeycloakInitializers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,9 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.rsocket.context.LocalRSocketServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.security.rsocket.metadata.SimpleAuthenticationEncoder;
-import org.springframework.security.rsocket.metadata.UsernamePasswordMetadata;
+import org.springframework.security.rsocket.metadata.BearerTokenAuthenticationEncoder;
+import org.springframework.security.rsocket.metadata.BearerTokenMetadata;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 
@@ -29,6 +35,16 @@ import static io.mkrzywanski.chat.app.message.UserConstants.USER_2;
 @TestPropertySource(properties = "spring.rsocket.server.port=0")
 @DirtiesContext
 public abstract class ChatBaseTest {
+
+    private static final KeyCloakProperties KEY_CLOAK_PROPERTIES = KeycloakInitializers.keyCloakProperties();
+    private static final KeyCloakContainer KEY_CLOAK_CONTAINER = new KeyCloakContainer(KEY_CLOAK_PROPERTIES.adminUser());
+    private static final KeyCloakAccess keyCloakAccess;
+
+    static {
+        KEY_CLOAK_CONTAINER.start();
+        KeycloakInitializers.setupKeycloak(KEY_CLOAK_PROPERTIES, KEY_CLOAK_CONTAINER.getFirstMappedPort());
+        keyCloakAccess = KeycloakInitializers.keycloak(KEY_CLOAK_PROPERTIES, KEY_CLOAK_CONTAINER);
+    }
 
     protected RSocketRequester requesterUser1;
     protected RSocketRequester requesterUser2;
@@ -47,6 +63,13 @@ public abstract class ChatBaseTest {
 
     @Autowired
     protected UserResumeTokenService userResumeTokenService;
+
+    @DynamicPropertySource
+    public static void setDatasourceProperties(final DynamicPropertyRegistry registry) {
+        final var issuer = String.format("http://localhost:%s/auth/realms/%s", KEY_CLOAK_CONTAINER.getFirstMappedPort(), KEY_CLOAK_PROPERTIES.testRealm());
+        registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> issuer);
+    }
+
 
     @BeforeAll
     public void setupOnce() {
@@ -71,20 +94,18 @@ public abstract class ChatBaseTest {
     }
 
     private RSocketRequester setupUser2Requester() {
-        final var user2 = new UsernamePasswordMetadata(USER_2, "pass");
-        return setupRequesterFor(user2);
+        return setupRequesterFor(keyCloakAccess.getUser2Token());
     }
 
     private RSocketRequester setupUser1Requester() {
-        final var user1 = new UsernamePasswordMetadata(USER_1, "pass");
-        return setupRequesterFor(user1);
+        return setupRequesterFor(keyCloakAccess.getUser1Token());
     }
 
-    private RSocketRequester setupRequesterFor(final UsernamePasswordMetadata usernamePasswordMetadata) {
+    private RSocketRequester setupRequesterFor(final String token) {
         return builder
-                .setupMetadata(usernamePasswordMetadata, SIMPLE_AUTH)
+                .setupMetadata(new BearerTokenMetadata(token), SIMPLE_AUTH)
                 .rsocketStrategies(v ->
-                        v.encoder(new SimpleAuthenticationEncoder()))
+                        v.encoder(new BearerTokenAuthenticationEncoder()))
                 .websocket(URI.create("ws://localhost:" + port));
     }
 }

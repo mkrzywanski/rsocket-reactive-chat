@@ -83,6 +83,7 @@ class ChatServerClient {
     }
 
     joinChat(userMetadataProvider: AuthMetadataProvider, chatId : String, onComplete : (c : boolean) => void) {
+        console.log("join chat " + chatId)
         const metadata = encodeCompositeMetadata(
             [
                 [MESSAGE_RSOCKET_ROUTING.string, encodeRoute("join-chat")],

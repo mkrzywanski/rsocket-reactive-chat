@@ -4,7 +4,6 @@ import io.mkrzywanski.chat.app.message.api.Message;
 import io.mkrzywanski.chat.app.message.api.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -19,13 +18,13 @@ class MessageService {
         this.messageRepository = messageRepository;
     }
 
-    @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId, authentication.principal.username)")
+    //    @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId)")
     Flux<Message> findByChatId(final UUID chatId) {
         return messageRepository.findByChatRoomId(chatId, byTimestampDesc())
                 .map(MessageMapper::fromMessageDocument);
     }
 
-    @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId, authentication.principal.username)")
+    //    @PreAuthorize("@permissionEvaluator.isUserPartOfChat(#chatId)")
     Flux<Message> findByChatId(final UUID chatId, final Page page) {
         final var pageRequest = PageRequest.of(page.pageNumber(), page.pageSize())
                 .withSort(byTimestampDesc());

@@ -10,6 +10,7 @@ plugins {
 ext {
 	testcontainersVersion = '1.17.2'
 	lombokVersion = '1.18.24'
+	keycloakVersion = '18.0.0'
 }
 
 group = 'io.mkrzywanski'
@@ -44,6 +45,8 @@ dependencies {
 	testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
+	testImplementation "org.keycloak:keycloak-admin-client:${keycloakVersion}"
 
 }
 

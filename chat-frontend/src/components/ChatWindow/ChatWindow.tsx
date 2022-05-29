@@ -44,6 +44,7 @@ const ChatWindow: FC<ChatWindowProps> = (props: ChatWindowProps) => {
     if (rsocket != null) {
       if (!isStreamInitialized) {
         rsocket?.messageStream(jwtMetadata, (m: Message) => {
+          console.log("aaa" + m)
           chatCache.current.putMessageToChat(m.chatRoomId, m)
           setMessages(chatCache.current.get(chatRef.current))
         })
@@ -56,6 +57,7 @@ const ChatWindow: FC<ChatWindowProps> = (props: ChatWindowProps) => {
   const authProviderUser1 = new SimpleAuthUserMetadataProvider("user1", "pass")
   const authProviderUser2 = new SimpleAuthUserMetadataProvider("user2", "pass")
   const jwtMetadata = new JwtAuthUserMetadataProvider(keycloak.token || "")
+  console.log(keycloak.tokenParsed)
 
   const createHandler = (event: React.MouseEvent<HTMLButtonElement>) => {
     console.log("create chat")
@@ -68,7 +70,8 @@ const ChatWindow: FC<ChatWindowProps> = (props: ChatWindowProps) => {
 
   const joinChat = (event: React.MouseEvent<HTMLButtonElement>) => {
     console.log("join chat")
-    rsocket?.joinChat(jwtMetadata, chat, result => console.log(result))
+    setChat(a)
+    rsocket?.joinChat(jwtMetadata, a, result => console.log(result))
   }
 
   const addChat = (chatId: string) => {
@@ -86,6 +89,7 @@ const ChatWindow: FC<ChatWindowProps> = (props: ChatWindowProps) => {
   }
 
   const changeChat = (chatId: string) => {
+    console.log(chatId)
     setChat(chatId);
   }
 
@@ -100,7 +104,7 @@ const ChatWindow: FC<ChatWindowProps> = (props: ChatWindowProps) => {
           <ChatList chatList={chats} chatOnClick={changeChat} />
           <ChatMessagesFeed chatId={chat} messages={messages} />
           {/* <ChatInputTextBox send={(content: String) => { rsocket.sendMessage(authProviderUser1, new InputMessage("user1", content, chat), m => { chatCache.current.putMessageToChat(chat, m) }) }} /> */}
-          <ChatInputTextBox send={(content: String) => { rsocket.sendMessage(jwtMetadata, new InputMessage(keycloak.tokenParsed?.preffered_username, content, chat), m => { chatCache.current.putMessageToChat(chat, m) }) }} />
+          <ChatInputTextBox send={(content: String) => { rsocket.sendMessage(jwtMetadata, new InputMessage(keycloak.tokenParsed?.preferred_username, content, chatRef.current), m => { chatCache.current.putMessageToChat(chat, m) }) }} />
           {/* <ChatInputTextBox send={(content: String) => { rsocket.sendMessage(authProviderUser2, new InputMessage("user2", content, chat), m => { addMessage(m); chatCache.current.putMessageToChat(chat, m) }) }} /> */}
         </div>
       ) : (

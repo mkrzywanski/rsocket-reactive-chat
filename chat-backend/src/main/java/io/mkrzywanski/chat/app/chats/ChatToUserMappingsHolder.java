@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface ChatToUserMappingsHolder {
-    Mono<Boolean> putUserToChat(String userName, UUID chatId);
+    Mono<Boolean> putUserToChat(Mono<String> userName, UUID chatId);
 
-    Mono<Set<UUID>> getUserChatRooms(String userName);
+    Mono<Set<UUID>> getUserChatRooms(Mono<String> userName);
 
     Flux<UsernameToChatsDocument> clear();
 }

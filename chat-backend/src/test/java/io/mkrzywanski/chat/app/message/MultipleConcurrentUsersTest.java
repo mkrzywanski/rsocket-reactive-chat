@@ -11,6 +11,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -138,12 +139,12 @@ class MultipleConcurrentUsersTest extends ChatBaseTest {
                 .thenCancel()
                 .verify();
 
-        final var user1Token = userResumeTokenService.getResumeTimestampFor(USER_1);
+        final var user1Token = userResumeTokenService.getResumeTimestampFor(Mono.just(USER_1));
         StepVerifier.create(user1Token)
                 .expectNextCount(1)
                 .verifyComplete();
 
-        final var user2Token = userResumeTokenService.getResumeTimestampFor(USER_2);
+        final var user2Token = userResumeTokenService.getResumeTimestampFor(Mono.just(USER_2));
         StepVerifier.create(user2Token)
                 .expectNextCount(1)
                 .verifyComplete();
