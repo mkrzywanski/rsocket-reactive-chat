@@ -169,7 +169,11 @@ class ChatServerClient {
                 subscription.request(100000000)
             }
         });
-    } 
+    }
+
+    getUserChats() {
+        
+    }
 
     disconnect() {
         this.rsocket.close()

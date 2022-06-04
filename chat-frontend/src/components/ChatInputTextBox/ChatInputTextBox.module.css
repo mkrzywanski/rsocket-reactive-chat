@@ -1,1 +1,3 @@
-.ChatInputTextBox {}
+.textareaNoResize {
+    resize: none;
+ }

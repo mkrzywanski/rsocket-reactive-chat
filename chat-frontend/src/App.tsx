@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import ChatWindow from './components/ChatWindow/ChatWindow';
-import Nav from './components/Nav/Nav';
+import CustomNav from './components/Nav/CustomNav';
 import WelcomePage from './components/WelcomePage/WelcomePage';
 import keycloak from './lib/chat-server-client/Keycloak';
 import PrivateRoute from './lib/chat-server-client/PrivateRoute';
@@ -11,13 +11,12 @@ import PrivateRoute from './lib/chat-server-client/PrivateRoute';
 function App() {
   return (
     <div className="App">
-      {/* <ChatWindow/> */}
       <ReactKeycloakProvider authClient={keycloak}>
-        <Nav />
         <BrowserRouter>
+          <CustomNav />
           <Routes>
             <Route path="/" element={<WelcomePage />} />
-            <Route path="/chat" element={<PrivateRoute protectedComponent={<ChatWindow />} /> } />
+            <Route path="/chat" element={<PrivateRoute protectedComponent={<ChatWindow />} />} />
           </Routes>
         </BrowserRouter>
       </ReactKeycloakProvider>

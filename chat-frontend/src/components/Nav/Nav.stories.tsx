@@ -1,5 +1,5 @@
 /* eslint-disable */
-import Nav from './Nav';
+import Nav from './CustomNav';
 
 export default {
   title: "Nav",

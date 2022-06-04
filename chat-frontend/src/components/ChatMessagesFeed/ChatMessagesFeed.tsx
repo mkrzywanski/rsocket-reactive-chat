@@ -1,5 +1,7 @@
 import React, { FC, useState } from 'react';
+import { ListGroup } from 'react-bootstrap';
 import { Message } from '../../lib/chat-server-client/Message';
+import ChatMessage from '../ChatMessage/ChatMessage';
 import styles from './ChatMessagesFeed.module.css';
 
 export interface ChatMessagesFeedProps {
@@ -10,14 +12,15 @@ export interface ChatMessagesFeedProps {
 const ChatMessagesFeed: FC<ChatMessagesFeedProps> = (props : ChatMessagesFeedProps) => {
 
   return (
+  
   <div className={styles.ChatMessagesFeed} data-testid="ChatMessagesFeed">
+    <ListGroup>
     {
       props.messages.map((item, index) => (
-        <div className="indent" key={index}>
-          {item.content}
-        </div>
+        <ChatMessage message={item}></ChatMessage>
       ))
     }
+    </ListGroup>
   </div>
   );
 }
