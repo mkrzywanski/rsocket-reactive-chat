@@ -5,7 +5,7 @@ import Nav from './CustomNav';
 
 describe('<Nav />', () => {
   test('it should mount', () => {
-    render(<Nav />);
+    render(<Nav setHeight={() => undefined}/>);
     
     const nav = screen.getByTestId('Nav');
 

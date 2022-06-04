@@ -1,14 +1,17 @@
 import { useKeycloak } from '@react-keycloak/web';
-import React, { FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { Container, Navbar, Nav } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom'
 
-interface NavProps { }
+export interface NavProps { 
+  setHeight : Dispatch<SetStateAction<number>>
+}
 
-const CustomNav: FC<NavProps> = () => {
+const CustomNav: FC<NavProps> = (props : NavProps) => {
   const { keycloak, initialized } = useKeycloak();
   const navigate = useNavigate();
+  const navbarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     keycloak.onAuthSuccess = () => {
@@ -16,9 +19,16 @@ const CustomNav: FC<NavProps> = () => {
     }
   }, [])
 
+  useEffect(
+    () => {
+      if(navbarRef.current) {
+        props.setHeight(navbarRef.current.clientHeight)
+      }
+    }
+  )
 
   return (
-    <Navbar bg="light" expand="lg">
+    <Navbar bg="light" expand="lg" ref={navbarRef}>
       <Container>
         <Navbar.Brand href="#home">Rsocket-Chat</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />

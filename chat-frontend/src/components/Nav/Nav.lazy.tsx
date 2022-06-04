@@ -4,7 +4,7 @@ const LazyNav = lazy(() => import('./CustomNav'));
 
 const Nav = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
   <Suspense fallback={null}>
-    <LazyNav {...props} />
+    {/* <LazyNav {...props} /> */}
   </Suspense>
 );
 
