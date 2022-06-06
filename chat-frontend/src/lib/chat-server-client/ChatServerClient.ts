@@ -6,6 +6,7 @@ import { AuthMetadataProvider } from './AuthMetadataProvider';
 import { InputMessage } from './InputMessage';
 import { JoinChatRequest } from './JoinChatRequest';
 import { Message } from './Message';
+import { MessageStreamSubscriber } from './MessageStreamSubscriber';
 
 class ChatServerClient {
 
@@ -104,7 +105,6 @@ class ChatServerClient {
             },
             onSubscribe: cancel => {
                 console.log('subscribe join chat')
-                // console.log(cancel)
             }
         });
     }
@@ -146,33 +146,34 @@ class ChatServerClient {
         )
 
         console.log("message stream client")
-        // var d : ISubscription = null;
         this.rsocket.requestStream({
             metadata: metadata
+        }).subscribe(new MessageStreamSubscriber(onNextMessage))
+    }
+
+    getUserChats(userMetadataProvider: AuthMetadataProvider, onComplete : (chats : Set<string>) => void) {
+        const metadata = encodeCompositeMetadata(
+            [
+                [MESSAGE_RSOCKET_ROUTING.string, encodeRoute("get-user-chats")],
+                [MESSAGE_RSOCKET_AUTHENTICATION.string, userMetadataProvider.userMetadata()]
+            ]
+        )
+        this.rsocket.requestResponse({
+            metadata: metadata
         }).subscribe({
-            onComplete: () => {
-                console.log("stream on complete")
-            },
-            onNext : (data) => {
-                console.log("on message")
-                const a : Message = JSON.parse(data.data)
-                onNextMessage(a)
-            
+            onComplete: data => {
+                const message : Set<string> = JSON.parse(data.data)
+                onComplete(message)
+                console.log('message received when sending ' + message)
             },
             onError: error => {
                 console.log(error + ' error')
             },
-            onSubscribe: subscription => {
-                console.log('subscribe to stream')
-                // console.log(cancel)
-                // d = subscription
-                subscription.request(100000000)
+            onSubscribe: cancel => {
+                console.log('subscribe send message')
+                console.log(cancel)
             }
         });
-    }
-
-    getUserChats() {
-        
     }
 
     disconnect() {

@@ -45,15 +45,16 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
 
   const resultHeight = window.innerHeight - navbarHeight;
 
-  console.log(resultHeight);
-
   const initializeStream = () => {
     if (rsocket != null) {
       if (!isStreamInitialized) {
         rsocket?.messageStream(jwtMetadata, (message: Message) => {
           chatCache.current.putMessageToChat(message.chatRoomId, message);
-          setMessages(chatCache.current.get(chatRef.current));
+          const messages = chatCache.current.get(chatRef.current);
+          console.log("messages " + messages);
+          setMessages(messages);
         });
+        rsocket.getUserChats(jwtMetadata, (chats) => setChats(chats))
       } else {
         setStreamInitialized(true);
       }
@@ -100,28 +101,24 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
     setChat(chatId);
   };
 
-  const footerheight = 100
-
   return (
     <div className={styles.ChatWindow} data-testid="ChatWindow">
       {rsocket ? (
         <div style={{ height: resultHeight, position: "relative" }}>
-          <Row style={{ height: "100%", margin: 0 }}>
-            <Col sm={4}>
+          <Row className="h-100 m-0">
+            <Col sm={4} className="h-100 border-end">
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
+                  // justifyContent: "space-between",
                   height: "100%",
-                  position: "relative",
-                  flex: 1
+                  // position: "relative",
+                  // flex: 1,
                 }}
               >
-                <div style={{position: "relative"}}>
-                  <ChatList chatList={chats} chatOnClick={changeChat} footerheight={footerheight}/>
-                </div>
-                <div style={{height: footerheight}}>
+                <ChatList chatList={chats} chatOnClick={changeChat} />
+                <div>
                   <InputGroup>
                     <Form.Control
                       size="lg"
@@ -136,11 +133,18 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                 </div>
               </div>
             </Col>
-            <Col sm={8}>
-              <div>
-                <div>
-                  <ChatMessagesFeed chatId={chat} messages={messages} />
-                </div>
+            <Col sm={8} className="h-100">
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  // justifyContent: "space-between",
+                  height: "100%",
+                  // position: "relative",
+                  // flex: 1,
+                }}
+              >
+                <ChatMessagesFeed chatId={chat} messages={messages} />
                 <ChatInputTextBox
                   send={(content: String) => {
                     rsocket.sendMessage(

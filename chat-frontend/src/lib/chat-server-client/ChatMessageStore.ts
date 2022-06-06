@@ -20,7 +20,7 @@ export class ChatMessageStore {
         } else {
             messages.push(message)
             messages.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
-            this.cache.set(chatId, messages)
+            this.cache.set(chatId, [...messages])
         }
     }
 
@@ -29,7 +29,7 @@ export class ChatMessageStore {
         if (messages == undefined) {
             return []
         } else {
-            return messages;
+            return [...messages];
         }
     }
 }
