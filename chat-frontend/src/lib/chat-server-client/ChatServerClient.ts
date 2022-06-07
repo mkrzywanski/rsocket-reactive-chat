@@ -2,11 +2,11 @@
 import { BufferEncoders, encodeCompositeMetadata, encodeRoute, IdentitySerializer, JsonSerializer, MESSAGE_RSOCKET_AUTHENTICATION, MESSAGE_RSOCKET_COMPOSITE_METADATA, MESSAGE_RSOCKET_ROUTING, RSocketClient, Utf8Encoders } from 'rsocket-core';
 import { ReactiveSocket, ISubscription } from 'rsocket-types';
 import RSocketWebsocketClient from 'rsocket-websocket-client';
-import { AuthMetadataProvider } from './AuthMetadataProvider';
-import { InputMessage } from './InputMessage';
-import { JoinChatRequest } from './JoinChatRequest';
-import { Message } from './Message';
+import { AuthMetadataProvider } from '../auth/AuthMetadataProvider';
+import { Message } from '../api/Message';
 import { MessageStreamSubscriber } from './MessageStreamSubscriber';
+import { JoinChatRequest } from '../api/JoinChatRequest';
+import { InputMessage } from '../api/InputMessage';
 
 class ChatServerClient {
 
@@ -165,6 +165,31 @@ class ChatServerClient {
                 const message : Set<string> = JSON.parse(data.data)
                 onComplete(message)
                 console.log('message received when sending ' + message)
+            },
+            onError: error => {
+                console.log(error + ' error')
+            },
+            onSubscribe: cancel => {
+                console.log('subscribe send message')
+                console.log(cancel)
+            }
+        });
+    }
+
+    getMessagesForChatPaged(userMetadataProvider: AuthMetadataProvider, onComplete : (messages : Message[]) => void, page : number) {
+        const metadata = encodeCompositeMetadata(
+            [
+                [MESSAGE_RSOCKET_ROUTING.string, encodeRoute("chat." + page + ".messages.paged")],
+                [MESSAGE_RSOCKET_AUTHENTICATION.string, userMetadataProvider.userMetadata()]
+            ]
+        )
+        this.rsocket.requestResponse({
+            metadata: metadata
+        }).subscribe({
+            onComplete: data => {
+                const messages : Message[] = JSON.parse(data.data)
+                onComplete(messages)
+                console.log('message received when sending ' + messages)
             },
             onError: error => {
                 console.log(error + ' error')

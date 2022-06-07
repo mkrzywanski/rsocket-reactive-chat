@@ -1,5 +1,5 @@
 import { ISubscriber, ISubscription, Payload } from "rsocket-types";
-import { Message } from "./Message";
+import { Message } from "../api/Message";
 
 export class MessageStreamSubscriber implements ISubscriber<Payload<any, any>> {
 

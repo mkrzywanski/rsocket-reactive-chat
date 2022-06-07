@@ -1,6 +1,6 @@
 
 import { SortedArray } from "typescript";
-import { Message } from "./Message";
+import { Message } from "../api/Message";
 
 export class ChatMessageStore {
 

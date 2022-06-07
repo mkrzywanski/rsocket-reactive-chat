@@ -1,13 +1,12 @@
 import { useKeycloak } from "@react-keycloak/web";
 import React, { FC, useEffect, useRef, useState } from "react";
-import { Button, Card, Col, Row, InputGroup, Form } from "react-bootstrap";
+import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
 import useStateRef from "react-usestateref";
+import { InputMessage } from "../../lib/api/InputMessage";
+import { Message } from "../../lib/api/Message";
+import { JwtAuthUserMetadataProvider } from "../../lib/auth/JwtAuthUserMetadataProvider";
 import { ChatMessageStore } from "../../lib/chat-server-client/ChatMessageStore";
 import { ChatServerClient } from "../../lib/chat-server-client/ChatServerClient";
-import { InputMessage } from "../../lib/chat-server-client/InputMessage";
-import { JwtAuthUserMetadataProvider } from "../../lib/chat-server-client/JwtAuthUserMetadataProvider";
-import { Message } from "../../lib/chat-server-client/Message";
-import { SimpleAuthUserMetadataProvider } from "../../lib/chat-server-client/SimpleAuthUserMetadataProvider";
 import ChatInputTextBox from "../ChatInputTextBox/ChatInputTextBox";
 import ChatList from "../ChatList/ChatList";
 import ChatMessagesFeed from "../ChatMessagesFeed/ChatMessagesFeed";
@@ -54,7 +53,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
           console.log("messages " + messages);
           setMessages(messages);
         });
-        rsocket.getUserChats(jwtMetadata, (chats) => setChats(chats))
+        rsocket.getUserChats(jwtMetadata, (chats) => setChats(chats));
       } else {
         setStreamInitialized(true);
       }
@@ -97,8 +96,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
   };
 
   const changeChat = (chatId: string) => {
-    console.log(chatId);
     setChat(chatId);
+    setMessages(chatCache.current.get(chatId))
   };
 
   return (
@@ -144,7 +143,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                   // flex: 1,
                 }}
               >
-                <ChatMessagesFeed chatId={chat} messages={messages} />
+                <ChatMessagesFeed chatId={chat} messages={messages} currentUserName={keycloak?.tokenParsed?.preferred_username}/>
                 <ChatInputTextBox
                   send={(content: String) => {
                     rsocket.sendMessage(
@@ -156,6 +155,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                       ),
                       (m) => {
                         chatCache.current.putMessageToChat(chat, m);
+                        setMessages(chatCache.current.get(chat))
                       }
                     );
                   }}

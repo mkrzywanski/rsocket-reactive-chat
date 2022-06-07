@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import ChatWindow from './components/ChatWindow/ChatWindow';
+import JoinChatByLink from './components/JoinChatByLink/JoinChatByLink';
 import CustomNav from './components/Nav/CustomNav';
 import WelcomePage from './components/WelcomePage/WelcomePage';
-import keycloak from './lib/chat-server-client/Keycloak';
-import PrivateRoute from './lib/chat-server-client/PrivateRoute';
+import keycloak from './lib/auth/Keycloak';
+import PrivateRoute from './lib/auth/PrivateRoute';
 
 function App() {
   const [navbarHeight, setNavbarHeight] = useState(0)
@@ -19,6 +20,7 @@ function App() {
           <Routes>
             <Route path="/" element={<WelcomePage />} />
             <Route path="/chat" element={<PrivateRoute protectedComponent={<ChatWindow navbarHeight={navbarHeight}/>} />} />
+            <Route path="/joinChat" element={<JoinChatByLink />} />
           </Routes>
         </BrowserRouter>
       </ReactKeycloakProvider>

@@ -1,19 +1,25 @@
-import React, { FC, Fragment } from "react";
+import React, { FC } from "react";
 import { Card } from "react-bootstrap";
-import { Message } from "../../lib/chat-server-client/Message";
+import { Message } from "../../lib/api/Message";
 import styles from "./ChatMessage.module.css";
 
 export interface ChatMessageProps {
   message: Message;
+  currentUserName?: string;
 }
 
 const ChatMessage: FC<ChatMessageProps> = (props: ChatMessageProps) => {
+  var liStyle = "chat-message d-flex justify-content-between";
+
+  if (props.message.usernameFrom === props.currentUserName) {
+    liStyle += " float-end";
+  }
+
+  console.log(liStyle);
+
   return (
-    <div className={styles.ChatMessage} data-testid="ChatMessage">
-      <li
-        className="chat-message d-flex justify-content-between mb-4"
-        key={props.message.time.toString()}
-      >
+    <div className="mb-2 mr-5" data-testid="ChatMessage">
+      <li className={liStyle} key={props.message.time.toString()}>
         <Card>
           <Card.Body>
             <div>
