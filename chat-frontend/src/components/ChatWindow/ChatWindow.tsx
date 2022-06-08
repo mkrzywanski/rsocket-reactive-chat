@@ -64,10 +64,15 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
 
   const joinChat = (event: React.MouseEvent<HTMLButtonElement>) => {
     console.log("join chat");
-    setChat(joinChatValue);
-    rsocket?.joinChat(jwtMetadata, joinChatValue, (result) =>
-      console.log(result)
-    );
+    rsocket?.joinChat(jwtMetadata, joinChatValue, (result) => {
+      console.log("zzz " + result);
+      console.log(typeof result);
+      console.log("xD " + (result === true));
+      if (result === true) {
+        setChat(joinChatValue);
+        addChat(joinChatValue);
+      }
+    });
   };
 
   const addChat = (chatId: string) => {
