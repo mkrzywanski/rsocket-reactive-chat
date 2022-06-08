@@ -1,5 +1,5 @@
 import { useKeycloak } from "@react-keycloak/web";
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useContext, useEffect, useRef, useState } from "react";
 import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
 import useStateRef from "react-usestateref";
 import { InputMessage } from "../../lib/api/InputMessage";
@@ -7,6 +7,7 @@ import { Message } from "../../lib/api/Message";
 import { JwtAuthUserMetadataProvider } from "../../lib/auth/JwtAuthUserMetadataProvider";
 import { ChatMessageStore } from "../../lib/chat-server-client/ChatMessageStore";
 import { ChatServerClient } from "../../lib/chat-server-client/ChatServerClient";
+import { RsocketContext } from "../../lib/chat-server-client/RsocketContext";
 import ChatInputTextBox from "../ChatInputTextBox/ChatInputTextBox";
 import ChatList from "../ChatList/ChatList";
 import ChatMessagesFeed from "../ChatMessagesFeed/ChatMessagesFeed";
@@ -17,37 +18,27 @@ export interface ChatWindowProps {
 }
 
 const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
-  const [rsocket, setRsocket] = useState<ChatServerClient | null>(null);
   const [chat, setChat, chatRef] = useStateRef("");
   const [joinChatValue, setJoinChat] = useState("");
   const [chats, setChats] = useState(new Set<string>());
   const chatCache = useRef(new ChatMessageStore());
   const [messages, setMessages] = useState(new Array<Message>());
-  const [isStreamInitialized, setStreamInitialized] = useState(false);
   const { keycloak } = useKeycloak();
+  const [isStreamInitialized, setStreamInitialized] = useState(false);
+  const rsocket = useContext(RsocketContext);
 
-  async function getClient() {
-    const client = await ChatServerClient.CreateAsync("localhost", 9090);
-    setRsocket(client);
-  }
+  const resultHeight = window.innerHeight - navbarHeight;
 
-  useEffect(() => {
-    getClient();
-    return () => {
-      rsocket?.disconnect();
-    };
-  }, []);
+  const jwtMetadata = new JwtAuthUserMetadataProvider(keycloak.token || "");
 
   useEffect(() => {
     initializeStream();
   }, [rsocket]);
 
-  const resultHeight = window.innerHeight - navbarHeight;
-
   const initializeStream = () => {
     if (rsocket != null) {
       if (!isStreamInitialized) {
-        rsocket?.messageStream(jwtMetadata, (message: Message) => {
+        rsocket.messageStream(jwtMetadata, (message: Message) => {
           chatCache.current.putMessageToChat(message.chatRoomId, message);
           const messages = chatCache.current.get(chatRef.current);
           console.log("messages " + messages);
@@ -59,8 +50,6 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
       }
     }
   };
-
-  const jwtMetadata = new JwtAuthUserMetadataProvider(keycloak.token || "");
 
   const createHandler = (event: React.MouseEvent<HTMLButtonElement>) => {
     rsocket?.createChat(jwtMetadata, (chatId) => {
@@ -97,7 +86,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
 
   const changeChat = (chatId: string) => {
     setChat(chatId);
-    setMessages(chatCache.current.get(chatId))
+    setMessages(chatCache.current.get(chatId));
   };
 
   return (
@@ -143,7 +132,11 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                   // flex: 1,
                 }}
               >
-                <ChatMessagesFeed chatId={chat} messages={messages} currentUserName={keycloak?.tokenParsed?.preferred_username}/>
+                <ChatMessagesFeed
+                  chatId={chat}
+                  messages={messages}
+                  currentUserName={keycloak?.tokenParsed?.preferred_username}
+                />
                 <ChatInputTextBox
                   send={(content: String) => {
                     rsocket.sendMessage(
@@ -155,7 +148,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                       ),
                       (m) => {
                         chatCache.current.putMessageToChat(chat, m);
-                        setMessages(chatCache.current.get(chat))
+                        setMessages(chatCache.current.get(chat));
                       }
                     );
                   }}
