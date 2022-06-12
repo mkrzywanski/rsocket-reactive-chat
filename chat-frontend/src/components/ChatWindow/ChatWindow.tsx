@@ -172,7 +172,7 @@ const ChatWindow: FC<ChatWindowProps> = ({
                     inverse={true}
                     loader={<h4>Loading...</h4>}
                     scrollableTarget="messageFeed"
-                    scrollThreshold={0.7}
+                    scrollThreshold={0.8}
                   >
                     {messages.map((item, index) => (
                       <ChatMessage
