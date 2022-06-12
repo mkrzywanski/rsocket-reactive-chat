@@ -1,12 +1,13 @@
 /* eslint-disable */
-import JoinChatByLink from './JoinChatByLink';
+import React from "react";
+import JoinChatByLink from "./JoinChatByLink";
 
 export default {
   title: "JoinChatByLink",
 };
 
-export const Default = () => <JoinChatByLink />;
+export const Default = () => <JoinChatByLink addChat={() => {}} />;
 
 Default.story = {
-  name: 'default',
+  name: "default",
 };

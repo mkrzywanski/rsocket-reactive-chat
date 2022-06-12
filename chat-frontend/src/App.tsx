@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import ChatWindow from "./components/ChatWindow/ChatWindow";
 import JoinChatByLink from "./components/JoinChatByLink/JoinChatByLink";
+import LoadingComponent from "./components/LoadingComponent/LoadingComponent";
 import CustomNav from "./components/Nav/CustomNav";
 import WelcomePage from "./components/WelcomePage/WelcomePage";
 import keycloak from "./lib/auth/Keycloak";
@@ -14,6 +15,7 @@ import { RsocketContext } from "./lib/chat-server-client/RsocketContext";
 function App() {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [rsocket, setRsocket] = useState<ChatServerClient | null>(null);
+  const [chats, setChats] = useState(new Set<string>());
 
   async function getClient() {
     const client = await ChatServerClient.CreateAsync("localhost", 9090);
@@ -27,9 +29,15 @@ function App() {
     };
   }, []);
 
+  const addChat = (chatId : string) => {
+      const result = new Set<string>(chats)
+      result.add(chatId)
+      setChats(result)
+  }
+
   return (
     <div className="App">
-      <ReactKeycloakProvider authClient={keycloak}>
+      <ReactKeycloakProvider authClient={keycloak} LoadingComponent={<LoadingComponent></LoadingComponent>}>
         <RsocketContext.Provider value={rsocket}>
           <BrowserRouter>
             <CustomNav setHeight={setNavbarHeight} />
@@ -40,12 +48,12 @@ function App() {
                 element={
                   <PrivateRoute
                     protectedComponent={
-                      <ChatWindow navbarHeight={navbarHeight} />
+                      <ChatWindow navbarHeight={navbarHeight} chats={chats} setChats={setChats}/>
                     }
                   />
                 }
               />
-              <Route path="/joinChat" element={<JoinChatByLink />} />
+              <Route path="/joinChat" element={<JoinChatByLink addChat={addChat}/>} />
             </Routes>
           </BrowserRouter>
         </RsocketContext.Provider>

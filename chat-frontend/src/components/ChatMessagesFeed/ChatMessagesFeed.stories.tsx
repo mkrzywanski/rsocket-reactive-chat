@@ -1,4 +1,5 @@
 /* eslint-disable */
+import React from 'react';
 import ChatMessagesFeed from './ChatMessagesFeed';
 
 export default {

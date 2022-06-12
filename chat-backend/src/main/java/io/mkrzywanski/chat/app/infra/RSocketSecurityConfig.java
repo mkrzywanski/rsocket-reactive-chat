@@ -32,11 +32,6 @@ class RSocketSecurityConfig {
         return handler;
     }
 
-//    @Bean
-//    RSocketServerCustomizer ss(SecuritySocketAcceptorInterceptor interceptor) {
-//        return (server) -> server.interceptors((registry) -> registry.forSocketAcceptor(interceptor));
-//    }
-
     @Bean
     PayloadSocketAcceptorInterceptor authorization(final RSocketSecurity security) {
         security.authorizePayload(authorize ->

@@ -10,7 +10,6 @@ import java.util.UUID;
 
 @Repository
 public interface MessageRepository extends ReactiveMongoRepository<MessageDocument, UUID> {
-    Flux<MessageDocument> findByChatRoomId(UUID chatRoomId);
     Flux<MessageDocument> findByChatRoomId(UUID chatRoomId, Pageable pageable);
     Flux<MessageDocument> findByChatRoomId(UUID chatRoomId, Sort sort);
 }

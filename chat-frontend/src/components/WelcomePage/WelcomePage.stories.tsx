@@ -1,4 +1,5 @@
 /* eslint-disable */
+import React from 'react';
 import WelcomePage from './WelcomePage';
 
 export default {

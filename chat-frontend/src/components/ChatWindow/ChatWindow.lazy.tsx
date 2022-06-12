@@ -1,8 +1,9 @@
 import React, { lazy, Suspense } from 'react';
+import { ChatWindowProps } from './ChatWindow';
 
 const LazyChatWindow = lazy(() => import('./ChatWindow'));
 
-const ChatWindow = (props: JSX.IntrinsicAttributes & { children?: React.ReactNode; }) => (
+const ChatWindow = (props: ChatWindowProps) => (
   <Suspense fallback={null}>
     <LazyChatWindow {...props} />
   </Suspense>

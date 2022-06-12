@@ -1,7 +1,7 @@
 package io.mkrzywanski.chat.app.infra;
 
 import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
-import io.mkrzywanski.chat.app.common.Jwtutil;
+import io.mkrzywanski.chat.app.common.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -29,7 +29,7 @@ class PermissionEvaluator {
                     log.info("mapping");
                     return (Mono<Jwt>) securityContext.getAuthentication().getPrincipal();
                 })
-                .map(jwt -> Jwtutil.extractUserName(jwt))
+                .map(jwt -> JwtUtil.extractUserName(jwt))
 //                .map(jwtMono -> Jwtutil.extractUserName(jwtMono))
                 .flatMap(o -> chatToUserMappingsHolder.getUserChatRooms(Mono.just(o)))
                 .map(uuids -> uuids.contains(chatId))

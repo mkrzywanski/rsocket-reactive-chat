@@ -1,31 +1,27 @@
-import { useKeycloak } from '@react-keycloak/web';
-import React, { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from 'react';
-import { Button } from 'react-bootstrap';
-import { Container, Navbar, Nav } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom'
+import { useKeycloak } from "@react-keycloak/web";
+import React, {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useRef
+} from "react";
+import { Button, Container, Nav, Navbar } from "react-bootstrap";
 
-export interface NavProps { 
-  setHeight : Dispatch<SetStateAction<number>>
+export interface NavProps {
+  setHeight: Dispatch<SetStateAction<number>>;
 }
 
-const CustomNav: FC<NavProps> = (props : NavProps) => {
-  const { keycloak, initialized } = useKeycloak();
-  const navigate = useNavigate();
-  const navbarRef = useRef<HTMLDivElement>(null)
+const CustomNav: FC<NavProps> = (props: NavProps) => {
+  const { keycloak } = useKeycloak();
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const redirectUri = "http://" + window.location.host + "/chat";
 
   useEffect(() => {
-    keycloak.onAuthSuccess = () => {
-      navigate("/chat")
+    if (navbarRef.current) {
+      props.setHeight(navbarRef.current.clientHeight);
     }
-  }, [])
-
-  useEffect(
-    () => {
-      if(navbarRef.current) {
-        props.setHeight(navbarRef.current.clientHeight)
-      }
-    }
-  )
+  });
 
   return (
     <Navbar bg="light" expand="lg" ref={navbarRef}>
@@ -37,8 +33,15 @@ const CustomNav: FC<NavProps> = (props : NavProps) => {
           <Nav>
             {!keycloak.authenticated && (
               <div>
-                <Button onClick={() => keycloak.login()} className="ml-2">Login</Button>
-                <Button onClick={() => keycloak.register()} className="ml-2">Register</Button>
+                <Button
+                  onClick={() => keycloak.login({ redirectUri: redirectUri })}
+                  className="ml-2"
+                >
+                  Login
+                </Button>
+                <Button onClick={() => keycloak.register()} className="ml-2">
+                  Register
+                </Button>
               </div>
             )}
             {keycloak.authenticated && (
@@ -51,6 +54,6 @@ const CustomNav: FC<NavProps> = (props : NavProps) => {
       </Container>
     </Navbar>
   );
-}
+};
 
 export default CustomNav;

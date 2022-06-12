@@ -1,31 +1,38 @@
 import { useKeycloak } from "@react-keycloak/web";
 import React, { FC, useContext, useEffect, useRef, useState } from "react";
 import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
+import InfiniteScroll from "react-infinite-scroll-component";
 import useStateRef from "react-usestateref";
 import { InputMessage } from "../../lib/api/InputMessage";
 import { Message } from "../../lib/api/Message";
 import { JwtAuthUserMetadataProvider } from "../../lib/auth/JwtAuthUserMetadataProvider";
 import { ChatMessageStore } from "../../lib/chat-server-client/ChatMessageStore";
-import { ChatServerClient } from "../../lib/chat-server-client/ChatServerClient";
 import { RsocketContext } from "../../lib/chat-server-client/RsocketContext";
 import ChatInputTextBox from "../ChatInputTextBox/ChatInputTextBox";
 import ChatList from "../ChatList/ChatList";
-import ChatMessagesFeed from "../ChatMessagesFeed/ChatMessagesFeed";
+import ChatMessage from "../ChatMessage/ChatMessage";
 import styles from "./ChatWindow.module.css";
 
 export interface ChatWindowProps {
   navbarHeight?: number;
+  chats: Set<string>;
+  setChats: (chats: Set<string>) => void;
 }
 
-const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
+const ChatWindow: FC<ChatWindowProps> = ({
+  navbarHeight = 0,
+  chats,
+  setChats,
+}) => {
+  const pageSize = 10;
   const [chat, setChat, chatRef] = useStateRef("");
   const [joinChatValue, setJoinChat] = useState("");
-  const [chats, setChats] = useState(new Set<string>());
   const chatCache = useRef(new ChatMessageStore());
   const [messages, setMessages] = useState(new Array<Message>());
-  const { keycloak } = useKeycloak();
+  const { keycloak, initialized } = useKeycloak();
   const [isStreamInitialized, setStreamInitialized] = useState(false);
   const rsocket = useContext(RsocketContext);
+  const messagesEndRef = React.createRef<HTMLDivElement>();
 
   const resultHeight = window.innerHeight - navbarHeight;
 
@@ -41,33 +48,36 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
         rsocket.messageStream(jwtMetadata, (message: Message) => {
           chatCache.current.putMessageToChat(message.chatRoomId, message);
           const messages = chatCache.current.get(chatRef.current);
-          console.log("messages " + messages);
           setMessages(messages);
         });
-        rsocket.getUserChats(jwtMetadata, (chats) => setChats(chats));
-      } else {
+        rsocket.getUserChats(jwtMetadata, (chats) => {
+          setChats(chats);
+          chats.forEach((c) => {
+            rsocket.getMessagesForChatPaged(
+              jwtMetadata,
+              c,
+              { pageSize: pageSize, pageNumber: 1 },
+              (m) => {
+                chatCache.current.putMessagesToChat(c, m);
+              }
+            );
+          });
+        });
         setStreamInitialized(true);
+      } else {
+        // setStreamInitialized(true);
       }
     }
   };
 
   const createHandler = (event: React.MouseEvent<HTMLButtonElement>) => {
     rsocket?.createChat(jwtMetadata, (chatId) => {
-      setChat(chatId);
       addChat(chatId);
     });
   };
 
-  const setChatId = (s: string) => {
-    setJoinChat(s);
-  };
-
   const joinChat = (event: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("join chat");
     rsocket?.joinChat(jwtMetadata, joinChatValue, (result) => {
-      console.log("zzz " + result);
-      console.log(typeof result);
-      console.log("xD " + (result === true));
       if (result === true) {
         setChat(joinChatValue);
         addChat(joinChatValue);
@@ -76,17 +86,9 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
   };
 
   const addChat = (chatId: string) => {
-    setChats((old) => {
-      const copy = new Set<string>(old);
-      copy.add(chatId);
-      return copy;
-    });
-  };
-
-  const addMessage = (m: Message) => {
-    setMessages((old) => {
-      return [...old, m];
-    });
+    const copy = new Set<string>(chats);
+    copy.add(chatId);
+    setChats(copy);
   };
 
   const changeChat = (chatId: string) => {
@@ -94,9 +96,23 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
     setMessages(chatCache.current.get(chatId));
   };
 
+  const fetchData = () => {
+    const messages = chatCache.current.get(chatRef.current);
+    const page = messages.length / pageSize + 1;
+    rsocket?.getMessagesForChatPaged(
+      jwtMetadata,
+      chatRef.current,
+      { pageSize: pageSize, pageNumber: page },
+      (messages) => {
+        chatCache.current.putMessagesToChat(chatRef.current, messages);
+        setMessages(chatCache.current.get(chatRef.current));
+      }
+    );
+  };
+
   return (
     <div className={styles.ChatWindow} data-testid="ChatWindow">
-      {rsocket ? (
+      {rsocket && initialized ? (
         <div style={{ height: resultHeight, position: "relative" }}>
           <Row className="h-100 m-0">
             <Col sm={4} className="h-100 border-end">
@@ -104,10 +120,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  // justifyContent: "space-between",
                   height: "100%",
-                  // position: "relative",
-                  // flex: 1,
                 }}
               >
                 <ChatList chatList={chats} chatOnClick={changeChat} />
@@ -131,17 +144,47 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  // justifyContent: "space-between",
                   height: "100%",
-                  // position: "relative",
-                  // flex: 1,
                 }}
               >
-                <ChatMessagesFeed
-                  chatId={chat}
-                  messages={messages}
-                  currentUserName={keycloak?.tokenParsed?.preferred_username}
-                />
+                <h2 className="border-bottom">Current chat {chat}</h2>
+                <div
+                  id="messageFeed"
+                  className={styles.ChatMessagesFeed}
+                  data-testid="ChatMessagesFeed"
+                  style={{
+                    overflow: "auto",
+                    overflowY: "scroll",
+                    display: "flex",
+                    flexDirection: "column-reverse",
+                    height: "100%",
+                  }}
+                >
+                  <div ref={messagesEndRef} />
+                  <InfiniteScroll
+                    dataLength={messages.length}
+                    next={fetchData}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column-reverse",
+                    }}
+                    hasMore={true}
+                    inverse={true}
+                    loader={<h4>Loading...</h4>}
+                    scrollableTarget="messageFeed"
+                    scrollThreshold={0.7}
+                  >
+                    {messages.map((item, index) => (
+                      <ChatMessage
+                        message={item}
+                        key={index}
+                        currentUserName={
+                          keycloak.tokenParsed?.preferred_username
+                        }
+                      ></ChatMessage>
+                    ))}
+                  </InfiniteScroll>
+                </div>
                 <ChatInputTextBox
                   send={(content: String) => {
                     rsocket.sendMessage(
@@ -154,6 +197,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ navbarHeight = 0 }) => {
                       (m) => {
                         chatCache.current.putMessageToChat(chat, m);
                         setMessages(chatCache.current.get(chat));
+                        messagesEndRef.current?.scrollIntoView(true);
                       }
                     );
                   }}

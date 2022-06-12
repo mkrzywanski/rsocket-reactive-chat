@@ -2,9 +2,9 @@ package io.mkrzywanski.chat.app.common;
 
 import org.springframework.security.oauth2.jwt.Jwt;
 
-public final class Jwtutil {
+public final class JwtUtil {
 
-    private Jwtutil() {
+    private JwtUtil() {
     }
 
     public static String extractUserName(final Jwt jwt) {

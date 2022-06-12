@@ -43,7 +43,6 @@ class NewMessageWatcher {
     private Flux<Message> changeStream(final String username,
                                        final Mono<Set<UUID>> chats,
                                        final BsonTimestamp bsonTimestamp) {
-        System.out.println("USERNAMEEEE " + username);
         final Function<MessageDocument, Publisher<Boolean>> messageIsForThisUserChat =
                 message -> chats.map(chatIds -> {
                     LOGGER.info(" chatids " + chatIds);

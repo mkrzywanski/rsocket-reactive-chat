@@ -1,16 +1,18 @@
 import {
-    BufferEncoders,
-    encodeCompositeMetadata,
-    encodeRoute, MESSAGE_RSOCKET_AUTHENTICATION,
-    MESSAGE_RSOCKET_COMPOSITE_METADATA,
-    MESSAGE_RSOCKET_ROUTING,
-    RSocketClient
+  BufferEncoders,
+  encodeCompositeMetadata,
+  encodeRoute,
+  MESSAGE_RSOCKET_AUTHENTICATION,
+  MESSAGE_RSOCKET_COMPOSITE_METADATA,
+  MESSAGE_RSOCKET_ROUTING,
+  RSocketClient,
 } from "rsocket-core";
 import { Payload, ReactiveSocket } from "rsocket-types";
 import RSocketWebsocketClient from "rsocket-websocket-client";
 import { InputMessage } from "../api/InputMessage";
 import { JoinChatRequest } from "../api/JoinChatRequest";
 import { Message } from "../api/Message";
+import { Page } from "../api/Page";
 import { AuthMetadataProvider } from "../auth/AuthMetadataProvider";
 import { MessageStreamSubscriber } from "./MessageStreamSubscriber";
 
@@ -57,7 +59,6 @@ class ChatServerClient {
     host: String = "localhost",
     port: number = 9090
   ) => {
-    console.log("create client async");
     const client = new ChatServerClient(host, port);
     client.rsocket = await client.createClient();
     return client;
@@ -84,14 +85,11 @@ class ChatServerClient {
         onComplete: (data) => {
           const response = JSON.parse(data.data);
           onComplete(response.chatId);
-          console.log("data " + response.chatId);
         },
         onError: (error) => {
           console.log(error + " error");
         },
         onSubscribe: (cancel) => {
-          console.log("subscribe create chat");
-          // console.log(cancel)
         },
       });
   }
@@ -99,9 +97,8 @@ class ChatServerClient {
   joinChat(
     userMetadataProvider: AuthMetadataProvider,
     chatId: String,
-    onComplete: (c: boolean) => void
+    onComplete: (chat: boolean) => void
   ) {
-    console.log("join chat " + chatId);
     const metadata = encodeCompositeMetadata([
       [MESSAGE_RSOCKET_ROUTING.string, encodeRoute("join-chat")],
       [
@@ -123,7 +120,6 @@ class ChatServerClient {
           console.log(error + " error");
         },
         onSubscribe: (cancel) => {
-          console.log("subscribe join chat");
         },
       });
   }
@@ -133,8 +129,6 @@ class ChatServerClient {
     message: InputMessage,
     onComplete: (message: Message) => void
   ) {
-    console.log("sending");
-    console.log(JSON.stringify(message));
     const metadata = encodeCompositeMetadata([
       [MESSAGE_RSOCKET_ROUTING.string, encodeRoute("send-message")],
       [
@@ -151,15 +145,12 @@ class ChatServerClient {
         onComplete: (data) => {
           const message: Message = JSON.parse(data.data);
           onComplete(message);
-          console.log("message received when sending " + message);
         },
         onError: (error) => {
           console.log(error + " error");
         },
         onSubscribe: (cancel) => {
-          console.log("subscribe send message");
-          console.log(cancel);
-        },
+        }
       });
   }
 
@@ -174,8 +165,6 @@ class ChatServerClient {
         userMetadataProvider.userMetadata(),
       ],
     ]);
-
-    console.log("message stream client");
     this.rsocket
       .requestStream({
         metadata: metadata,
@@ -202,27 +191,25 @@ class ChatServerClient {
         onComplete: (data) => {
           const message: Set<string> = JSON.parse(data.data);
           onComplete(message);
-          console.log("message received when sending " + message);
         },
         onError: (error) => {
           console.log(error + " error");
         },
         onSubscribe: (cancel) => {
-          console.log("subscribe send message");
-          console.log(cancel);
         },
       });
   }
 
   getMessagesForChatPaged(
     userMetadataProvider: AuthMetadataProvider,
-    onComplete: (messages: Message[]) => void,
-    page: number
+    chatId: string,
+    page: Page,
+    onComplete: (messages: Message[]) => void
   ) {
     const metadata = encodeCompositeMetadata([
       [
         MESSAGE_RSOCKET_ROUTING.string,
-        encodeRoute("chat." + page + ".messages.paged"),
+        encodeRoute("chat." + chatId + ".messages.paged.single"),
       ],
       [
         MESSAGE_RSOCKET_AUTHENTICATION.string,
@@ -231,20 +218,18 @@ class ChatServerClient {
     ]);
     this.rsocket
       .requestResponse({
+        data: Buffer.from(JSON.stringify(page)),
         metadata: metadata,
       })
       .subscribe({
         onComplete: (data) => {
           const messages: Message[] = JSON.parse(data.data);
           onComplete(messages);
-          console.log("message received when sending " + messages);
         },
         onError: (error) => {
           console.log(error + " error");
         },
         onSubscribe: (cancel) => {
-          console.log("subscribe send message");
-          console.log(cancel);
         },
       });
   }

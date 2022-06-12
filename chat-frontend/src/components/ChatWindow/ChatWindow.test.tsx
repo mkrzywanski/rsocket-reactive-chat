@@ -5,7 +5,7 @@ import ChatWindow from './ChatWindow';
 
 describe('<ChatWindow />', () => {
   test('it should mount', () => {
-    render(<ChatWindow />);
+    render(<ChatWindow chats={new Set<string>()} setChats={() => {}}/>);
     
     const chatWindow = screen.getByTestId('ChatWindow');
 

@@ -1,4 +1,5 @@
 /* eslint-disable */
+import React from 'react';
 import Nav from './CustomNav';
 
 export default {

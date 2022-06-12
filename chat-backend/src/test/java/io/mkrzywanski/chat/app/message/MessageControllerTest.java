@@ -229,7 +229,6 @@ class MessageControllerTest extends ChatBaseTest {
         messageRepository.save(m3).block();
         messageRepository.save(m4).block();
 
-        System.out.println("test thread " + Thread.currentThread().getName());
         chatRoomUserMappings.putUserToChat(Mono.just(USER_1), chatId).block();
         chatRoomUserMappings.putUserToChat(Mono.just(USER_2), chatId).block();
 

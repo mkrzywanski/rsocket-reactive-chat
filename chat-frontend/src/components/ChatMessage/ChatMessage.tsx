@@ -1,7 +1,6 @@
 import React, { FC } from "react";
 import { Card } from "react-bootstrap";
 import { Message } from "../../lib/api/Message";
-import styles from "./ChatMessage.module.css";
 
 export interface ChatMessageProps {
   message: Message;
@@ -9,16 +8,14 @@ export interface ChatMessageProps {
 }
 
 const ChatMessage: FC<ChatMessageProps> = (props: ChatMessageProps) => {
-  var liStyle = "chat-message d-flex justify-content-between";
+  var liStyle = "chat-message d-flex justify-content-between pe-2";
 
   if (props.message.usernameFrom === props.currentUserName) {
     liStyle += " float-end";
   }
 
-  console.log(liStyle);
-
   return (
-    <div className="mb-2 mr-5" data-testid="ChatMessage">
+    <div className="mb-2" data-testid="ChatMessage">
       <li className={liStyle} key={props.message.time.toString()}>
         <Card>
           <Card.Body>

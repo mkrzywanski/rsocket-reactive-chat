@@ -16,7 +16,7 @@ class UserResumeTokenDocument {
     private UUID uuid;
 
     @Indexed(unique = true)
-    private String userName;
+    private final String userName;
 
     private BsonTimestamp tokenTimestamp;
 

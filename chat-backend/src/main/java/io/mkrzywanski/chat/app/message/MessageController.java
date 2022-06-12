@@ -1,7 +1,7 @@
 package io.mkrzywanski.chat.app.message;
 
 import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
-import io.mkrzywanski.chat.app.common.Jwtutil;
+import io.mkrzywanski.chat.app.common.JwtUtil;
 import io.mkrzywanski.chat.app.message.api.InputMessage;
 import io.mkrzywanski.chat.app.message.api.Message;
 import lombok.extern.slf4j.Slf4j;
@@ -41,23 +41,17 @@ class MessageController {
         final var incomingMessagesSubscription = messageRepository.saveAll(messages)
                 .then()
                 .subscribeOn(Schedulers.boundedElastic())
-//                .doOnSubscribe(subscription -> LOG.info("subscribing to user {} input channel", user.getUsername()))
                 .subscribe();
-        final var userNameMono = jwtMono.map(Jwtutil::extractUserName);
+        final var userNameMono = jwtMono.map(JwtUtil::extractUserName);
         final var userChats = chatRoomUserMappings.getUserChatRooms(userNameMono);
         return newMessageWatcher.newMessagesForChats(userChats, userNameMono)
                 .doOnNext(message -> LOG.info("Message reply {}", message))
-//                .doOnSubscribe(subscription -> LOG.info("Subscribing to watcher : {}", user.getUsername()))
-                .doOnCancel(() -> {
-                    LOG.info("Cancelled");
-                    incomingMessagesSubscription.dispose();
-                })
+                .doOnCancel(incomingMessagesSubscription::dispose)
                 .doOnError(throwable -> LOG.error(throwable.getMessage()));
     }
 
     @MessageMapping("send-message")
     public Mono<Message> handle(final InputMessage inputMessage, @AuthenticationPrincipal final Mono<Jwt> jwtMono) {
-        System.out.println("MESSAGE " + inputMessage);
         final var messageDocument = inputMessageMapper.fromInput(inputMessage);
         return messageRepository.save(messageDocument)
                 .map(MessageMapper::fromMessageDocument);
@@ -66,7 +60,7 @@ class MessageController {
     @MessageMapping("messages-stream")
     public Flux<Message> handle(@AuthenticationPrincipal final Mono<Jwt> jwtMono) {
         final Mono<String> userName = jwtMono.doOnNext(jwt -> log.info(jwt.getClaims().toString()))
-                .map(Jwtutil::extractUserName)
+                .map(JwtUtil::extractUserName)
                 .doOnNext(s -> log.info("username {}", s));
         final var userChats = chatRoomUserMappings.getUserChatRooms(userName);
         return newMessageWatcher.newMessagesForChats(userChats, userName)

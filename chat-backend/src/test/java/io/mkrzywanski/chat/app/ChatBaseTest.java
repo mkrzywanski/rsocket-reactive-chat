@@ -38,12 +38,12 @@ public abstract class ChatBaseTest {
 
     private static final KeyCloakProperties KEY_CLOAK_PROPERTIES = KeycloakInitializers.keyCloakProperties();
     private static final KeyCloakContainer KEY_CLOAK_CONTAINER = new KeyCloakContainer(KEY_CLOAK_PROPERTIES.adminUser());
-    private static final KeyCloakAccess keyCloakAccess;
+    private static final KeyCloakAccess KEY_CLOAK_ACCESS;
 
     static {
         KEY_CLOAK_CONTAINER.start();
         KeycloakInitializers.setupKeycloak(KEY_CLOAK_PROPERTIES, KEY_CLOAK_CONTAINER.getFirstMappedPort());
-        keyCloakAccess = KeycloakInitializers.keycloak(KEY_CLOAK_PROPERTIES, KEY_CLOAK_CONTAINER);
+        KEY_CLOAK_ACCESS = KeycloakInitializers.keycloak(KEY_CLOAK_PROPERTIES, KEY_CLOAK_CONTAINER);
     }
 
     protected RSocketRequester requesterUser1;
@@ -94,11 +94,11 @@ public abstract class ChatBaseTest {
     }
 
     private RSocketRequester setupUser2Requester() {
-        return setupRequesterFor(keyCloakAccess.getUser2Token());
+        return setupRequesterFor(KEY_CLOAK_ACCESS.getUser2Token());
     }
 
     private RSocketRequester setupUser1Requester() {
-        return setupRequesterFor(keyCloakAccess.getUser1Token());
+        return setupRequesterFor(KEY_CLOAK_ACCESS.getUser1Token());
     }
 
     private RSocketRequester setupRequesterFor(final String token) {

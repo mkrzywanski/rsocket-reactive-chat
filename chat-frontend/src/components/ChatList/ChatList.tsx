@@ -1,4 +1,4 @@
-import React, { CSSProperties, FC } from "react";
+import React, { FC } from "react";
 import { ListGroup } from "react-bootstrap";
 import styles from "./ChatList.module.css";
 
