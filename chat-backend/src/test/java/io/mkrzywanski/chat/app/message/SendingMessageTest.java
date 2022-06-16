@@ -3,6 +3,7 @@ package io.mkrzywanski.chat.app.message;
 import io.mkrzywanski.chat.app.ChatBaseTest;
 import io.mkrzywanski.chat.app.chats.api.ChatCreatedResponse;
 import io.mkrzywanski.chat.app.message.api.InputMessage;
+import io.mkrzywanski.chat.app.message.api.Message;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -58,12 +59,19 @@ class SendingMessageTest extends ChatBaseTest {
                 .map(ChatCreatedResponse::chatId)
                 .block();
 
+        final var data = new InputMessage("user1", "hello from user1 test1", chatId);
         final var mono = requesterUser1
                 .route("send-message")
-                .data(new InputMessage("user1", "hello from user1 test1", chatId))
-                .retrieveMono(Void.class);
+                .data(data)
+                .retrieveMono(Message.class);
 
         StepVerifier.create(mono)
+                .consumeNextWith(message -> {
+                    assertThat(message.chatRoomId()).isEqualTo(chatId);
+                    assertThat(message.content()).isEqualTo(data.content());
+                    assertThat(message.time()).isNotNull();
+                    assertThat(message.usernameFrom()).isEqualTo(data.usernameFrom());
+                })
                 .verifyComplete();
 
         StepVerifier.create(messageRepository.findAll())

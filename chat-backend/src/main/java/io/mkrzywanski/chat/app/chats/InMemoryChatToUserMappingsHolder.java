@@ -14,13 +14,13 @@ class InMemoryChatToUserMappingsHolder implements ChatToUserMappingsHolder {
     private final Map<String, Set<UUID>> userNameToChat = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<Boolean> putUserToChat(final String userName, final UUID chatId) {
-        return Mono.just(userNameToChat.computeIfAbsent(userName, s -> new HashSet<>()).add(chatId));
+    public Mono<Boolean> putUserToChat(final Mono<String> userName, final UUID chatId) {
+        return userName.map(s -> userNameToChat.computeIfAbsent(s, z -> new HashSet<>()).add(chatId));
     }
 
     @Override
-    public Mono<Set<UUID>> getUserChatRooms(final String userName) {
-        return Mono.just(userNameToChat.get(userName));
+    public Mono<Set<UUID>> getUserChatRooms(final Mono<String> userName) {
+        return userName.map(userNameToChat::get);
     }
 
     @Override

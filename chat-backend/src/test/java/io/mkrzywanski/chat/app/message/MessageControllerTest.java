@@ -151,12 +151,12 @@ class MessageControllerTest extends ChatBaseTest {
                 .verify();
 
 
-        final var user1Token = userResumeTokenService.getResumeTimestampFor(USER_1);
+        final var user1Token = userResumeTokenService.getResumeTimestampFor(Mono.just(USER_1));
         StepVerifier.create(user1Token)
                 .expectNextCount(1)
                 .verifyComplete();
 
-        final var user2Token = userResumeTokenService.getResumeTimestampFor(USER_2);
+        final var user2Token = userResumeTokenService.getResumeTimestampFor(Mono.just(USER_2));
         StepVerifier.create(user2Token)
                 .expectNextCount(1)
                 .verifyComplete();
@@ -198,8 +198,8 @@ class MessageControllerTest extends ChatBaseTest {
         final MessageDocument m2 = new MessageDocument(USER_2, "hello user 1", chatId, now.plusSeconds(2));
         messageRepository.save(m2).block();
 
-        chatRoomUserMappings.putUserToChat(USER_1, chatId).block();
-        chatRoomUserMappings.putUserToChat(USER_2, chatId).block();
+        chatRoomUserMappings.putUserToChat(Mono.just(USER_1), chatId).block();
+        chatRoomUserMappings.putUserToChat(Mono.just(USER_2), chatId).block();
 
         //when
         final var messageFlux = requesterUser1
@@ -229,9 +229,8 @@ class MessageControllerTest extends ChatBaseTest {
         messageRepository.save(m3).block();
         messageRepository.save(m4).block();
 
-        System.out.println("test thread " + Thread.currentThread().getName());
-        chatRoomUserMappings.putUserToChat(USER_1, chatId).block();
-        chatRoomUserMappings.putUserToChat(USER_2, chatId).block();
+        chatRoomUserMappings.putUserToChat(Mono.just(USER_1), chatId).block();
+        chatRoomUserMappings.putUserToChat(Mono.just(USER_2), chatId).block();
 
         //when
         final var messageFlux = requesterUser1

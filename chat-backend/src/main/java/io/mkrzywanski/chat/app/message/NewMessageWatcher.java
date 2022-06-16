@@ -32,24 +32,30 @@ class NewMessageWatcher {
         this.resumeTokenService = userResumeTokenRepository;
     }
 
-    public Flux<Message> newMessagesForChats(final Mono<Set<UUID>> chats, final String username) {
-        return resumeTokenService.getResumeTimestampFor(username)
-                .flatMapMany(bsonTimestamp -> changeStream(username, chats, bsonTimestamp))
-                .doOnCancel(() -> resumeTokenService.saveAndGenerateNewTokenFor(username));
+    public Flux<Message> newMessagesForChats(final Mono<Set<UUID>> chats, final Mono<String> userNameMono) {
+        return userNameMono.flatMapMany(userName -> resumeTokenService.getResumeTimestampFor(userNameMono)
+                .flatMapMany(bsonTimestamp -> changeStream(userName, chats, bsonTimestamp))
+                .doOnCancel(() -> resumeTokenService.saveAndGenerateNewTokenFor(userName))
+        );
+
     }
 
     private Flux<Message> changeStream(final String username,
                                        final Mono<Set<UUID>> chats,
                                        final BsonTimestamp bsonTimestamp) {
         final Function<MessageDocument, Publisher<Boolean>> messageIsForThisUserChat =
-                message -> chats.map(chatIds -> chatIds.contains(message.getChatRoomId()));
+                message -> chats.map(chatIds -> {
+                    LOGGER.info(" chatids " + chatIds);
+                    return chatIds.contains(message.getChatRoomId());
+                });
         return reactiveMongoTemplate.changeStream(MessageDocument.class)
                 .watchCollection("messages")
                 .resumeAt(bsonTimestamp)
                 .listen()
-                .doOnNext(e -> LOGGER.info("event {}", e))
+                .doOnNext(e -> LOGGER.info(" xdd event {}", e))
                 .filter(event -> event.getOperationType() == INSERT)
                 .map(ChangeStreamEvent::getBody)
+                .doOnNext(messageDocument -> LOGGER.info(messageDocument.toString()))
                 .filter(m -> m.isNotFromUser(username))
                 .filterWhen(messageIsForThisUserChat)
                 .map(MessageMapper::fromMessageDocument);

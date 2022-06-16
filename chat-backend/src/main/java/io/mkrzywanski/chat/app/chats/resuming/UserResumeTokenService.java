@@ -40,10 +40,11 @@ public class UserResumeTokenService {
         };
     }
 
-    public Mono<BsonTimestamp> getResumeTimestampFor(final String userName) {
-        return userResumeTokenRepository.findByUserName(userName)
+    public Mono<BsonTimestamp> getResumeTimestampFor(final Mono<String> userNameMono) {
+        return userNameMono.flatMap(userName -> userResumeTokenRepository.findByUserName(userName)
                 .map(UserResumeTokenDocument::getTokenTimestamp)
-                .defaultIfEmpty(new BsonTimestamp((int) clock.instant().getEpochSecond(), 0));
+                .defaultIfEmpty(new BsonTimestamp((int) clock.instant().getEpochSecond(), 0)));
+
     }
 
     public Mono<Boolean> deleteTokenForUser(final String username) {

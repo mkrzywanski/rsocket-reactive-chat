@@ -24,29 +24,31 @@ class MongoChatToUserMappingsHolder implements ChatToUserMappingsHolder {
     }
 
     @Override
-    public Mono<Boolean> putUserToChat(final String userName, final UUID chatId) {
-        final Query query = Query.query(Criteria.where("userName").is(userName));
-        final var document = reactiveMongoTemplate.findOne(query, UsernameToChatsDocument.class)
-                .defaultIfEmpty(new UsernameToChatsDocument(userName, new HashSet<>()))
-                .map(usernameToChatsDocument -> {
-                    usernameToChatsDocument.addChat(chatId);
-                    return usernameToChatsDocument;
-                });
-        return reactiveMongoTemplate.save(document)
-                .doOnNext(usernameToChatsDocument -> log.info("saving document {}", usernameToChatsDocument))
-                .map(usernameToChatsDocument -> true);
+    public Mono<Boolean> putUserToChat(final Mono<String> userNameMono, final UUID chatId) {
+        return userNameMono.flatMap(s -> {
+            final Query userName = Query.query(Criteria.where("userName").is(s));
+            final var document = reactiveMongoTemplate.findOne(userName, UsernameToChatsDocument.class)
+                    .defaultIfEmpty(new UsernameToChatsDocument(s, new HashSet<>()))
+                    .map(usernameToChatsDocument -> {
+                        usernameToChatsDocument.addChat(chatId);
+                        return usernameToChatsDocument;
+                    });
+            return reactiveMongoTemplate.save(document)
+                    .doOnNext(usernameToChatsDocument -> log.info("saving document {}", usernameToChatsDocument))
+                    .map(usernameToChatsDocument -> true);
+        });
     }
 
     @Override
-    public Mono<Set<UUID>> getUserChatRooms(final String userName) {
-        final Query query = Query.query(Criteria.where("userName").is(userName));
-        return reactiveMongoTemplate.findOne(query, UsernameToChatsDocument.class)
-                .doOnNext(usernameToChatsDocument -> log.info("found user {}", usernameToChatsDocument.getUserName()))
-                .flatMapIterable(UsernameToChatsDocument::getChats)
-                .collect(Collectors.toSet())
-                .doOnNext(uuids -> log.info("set size {}", uuids.size()))
-                .defaultIfEmpty(Set.of())
-                .doOnNext(uuids -> log.info("set size {}", uuids.size()));
+    public Mono<Set<UUID>> getUserChatRooms(final Mono<String> userNameMono) {
+        return userNameMono.map(username -> Query.query(Criteria.where("userName").is(username)))
+                .flatMap(query -> reactiveMongoTemplate.findOne(query, UsernameToChatsDocument.class)
+                        .doOnNext(usernameToChatsDocument -> log.info("found user {}", usernameToChatsDocument.getUserName()))
+                        .flatMapIterable(UsernameToChatsDocument::getChats)
+                        .collect(Collectors.toSet())
+                        .doOnNext(uuids -> log.info("set size {}", uuids.size()))
+                        .defaultIfEmpty(Set.of())
+                        .doOnNext(uuids -> log.info("set size {}", uuids.size())));
     }
 
     @Override

@@ -5,7 +5,7 @@ import ChatMessagesFeed from './ChatMessagesFeed';
 
 describe('<ChatMessagesFeed />', () => {
   test('it should mount', () => {
-    render(<ChatMessagesFeed />);
+    render(<ChatMessagesFeed messages={[]} chatId={""}/>);
     
     const chatMessagesFeed = screen.getByTestId('ChatMessagesFeed');
 

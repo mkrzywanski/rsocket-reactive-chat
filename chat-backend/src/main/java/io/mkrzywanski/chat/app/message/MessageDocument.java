@@ -14,10 +14,10 @@ class MessageDocument {
 
     @Id
     private UUID id;
-    private String usernameFrom;
-    private String content;
-    private UUID chatRoomId;
-    private Instant timestamp;
+    private final String usernameFrom;
+    private final String content;
+    private final UUID chatRoomId;
+    private final Instant timestamp;
 
     MessageDocument(final String usernameFrom, final String content, final UUID chatRoomId, final Instant timestamp) {
         this.timestamp = timestamp;
