@@ -1,14 +1,8 @@
 package io.mkrzywanski.chat.app.infra;
 
 import io.mkrzywanski.chat.app.chats.ChatToUserMappingsHolder;
-import io.mkrzywanski.chat.app.common.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -21,20 +15,20 @@ class PermissionEvaluator {
     }
 
     //https://github.com/spring-projects/spring-security/issues/9401
-    public boolean isUserPartOfChat(final UUID chatId) {
-        return ReactiveSecurityContextHolder.getContext()
-                .switchIfEmpty(Mono.error(new IllegalStateException("EMPTY CONTEXT")))
-                .log()
-                .flatMap(securityContext -> {
-                    log.info("mapping");
-                    return (Mono<Jwt>) securityContext.getAuthentication().getPrincipal();
-                })
-                .map(jwt -> JwtUtil.extractUserName(jwt))
-//                .map(jwtMono -> Jwtutil.extractUserName(jwtMono))
-                .flatMap(o -> chatToUserMappingsHolder.getUserChatRooms(Mono.just(o)))
-                .map(uuids -> uuids.contains(chatId))
-//                .share()
-                .block();
+//    public boolean isUserPartOfChat(final UUID chatId) {
+//        return ReactiveSecurityContextHolder.getContext()
+//                .switchIfEmpty(Mono.error(new IllegalStateException("EMPTY CONTEXT")))
+//                .log()
+//                .flatMap(securityContext -> {
+//                    log.info("mapping");
+//                    return (Mono<Jwt>) securityContext.getAuthentication().getPrincipal();
+//                })
+//                .map(jwt -> JwtUtil.extractUserName(jwt))
+////                .map(jwtMono -> Jwtutil.extractUserName(jwtMono))
+//                .flatMap(o -> chatToUserMappingsHolder.getUserChatRooms(Mono.just(o)))
+//                .map(uuids -> uuids.contains(chatId))
+////                .share()
+//                .block();
 //        final var isAuthorized = userName.log().map(authentication -> authentication.getPrincipal().toString())
 //                .log()
 //                .flatMap(o -> chatToUserMappingsHolder.getUserChatRooms(Mono.just(o)))
@@ -47,5 +41,5 @@ class PermissionEvaluator {
 ////                .block();
 ////        log.info("User {} is authorized : {}", userName, isAuthorized);
 //        return isAuthorized;
-    }
+//    }
 }
