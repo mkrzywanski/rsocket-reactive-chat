@@ -28,7 +28,7 @@
     "react-scripts": "^5.0.1",
     "react-usestateref": "^1.0.8",
     "rsocket-core": "^0.0.27",
-    "rsocket-tcp-client": "^1.0.0-alpha.1",
+    "rsocket-tcp-client": "^1.0.0-alpha.3",
     "rsocket-websocket-client": "^0.0.27",
     "typescript": "^4.7.3",
     "web-vitals": "^2.1.4"
