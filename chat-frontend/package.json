@@ -10,7 +10,7 @@
     "@testing-library/user-event": "^14.2.0",
     "@types/bootstrap": "^5.1.12",
     "@types/node": "^18.7.9",
-    "@types/react": "^18.0.9",
+    "@types/react": "^18.0.17",
     "@types/react-bootstrap": "^0.32.29",
     "@types/react-dom": "^18.0.4",
     "@types/rsocket-tcp-client": "^0.0.1",
