@@ -63,6 +63,6 @@
     "@types/rsocket-core": "^0.0.7",
     "@types/rsocket-flowable": "^0.0.5",
     "@types/rsocket-websocket-client": "^0.0.4",
-    "ts-jest": "^28.0.8"
+    "ts-jest": "^29.0.0"
   }
 }
