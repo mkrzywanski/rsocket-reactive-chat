@@ -30,7 +30,7 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-rsocket'
 	implementation 'org.springframework.security:spring-security-messaging'
 
-	implementation 'ch.qos.logback:logback-classic:1.2.11'
+	implementation 'ch.qos.logback:logback-classic:1.4.4'
 	implementation 'io.rsocket:rsocket-core:1.1.2'
 
 	compileOnly "org.projectlombok:lombok:${lombokVersion}"
