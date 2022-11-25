@@ -1,6 +1,6 @@
 plugins {
-	id 'org.springframework.boot' version '2.7.3'
-	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
+	id 'org.springframework.boot' version '3.0.0'
+	id 'io.spring.dependency-management' version '1.1.0'
 	id 'java'
 	id 'jacoco'
 	id 'checkstyle'
@@ -29,9 +29,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'org.springframework.security:spring-security-rsocket'
 	implementation 'org.springframework.security:spring-security-messaging'
-
-	implementation 'ch.qos.logback:logback-classic:1.2.11'
-	implementation 'io.rsocket:rsocket-core:1.1.2'
 
 	compileOnly "org.projectlombok:lombok:${lombokVersion}"
 	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
