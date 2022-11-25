@@ -3,7 +3,7 @@ pull_request_rules:
     conditions:
       - and :
         - author=dependabot[bot]
-        - check-success=lift
+        - check-success=sonatype-lift
         - or :
           - and :
             - check-success=build
