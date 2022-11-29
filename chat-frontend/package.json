@@ -11,7 +11,7 @@
     "@types/bootstrap": "^5.2.6",
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
-    "@types/react-bootstrap": "^0.32.29",
+    "@types/react-bootstrap": "^0.32.32",
     "@types/react-dom": "^18.0.9",
     "@types/rsocket-tcp-client": "^0.0.1",
     "bootstrap": "^5.2.3",
