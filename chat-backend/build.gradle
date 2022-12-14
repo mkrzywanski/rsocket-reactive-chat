@@ -10,7 +10,7 @@ plugins {
 ext {
 	testcontainersVersion = '1.17.6'
 	lombokVersion = '1.18.24'
-	keycloakVersion = '18.0.0'
+	keycloakVersion = '20.0.2'
 }
 
 group = 'io.mkrzywanski'
