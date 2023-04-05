@@ -8,7 +8,7 @@ plugins {
 }
 
 ext {
-	testcontainersVersion = '1.17.6'
+	testcontainersVersion = '1.18.0'
 	lombokVersion = '1.18.26'
 	keycloakVersion = '20.0.3'
 }
