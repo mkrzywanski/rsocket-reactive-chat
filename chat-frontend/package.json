@@ -21,7 +21,7 @@
     "keycloak-js": "^21.0.2",
     "prettier": "^2.8.7",
     "react": "^18.1.0",
-    "react-bootstrap": "^2.7.2",
+    "react-bootstrap": "^2.7.3",
     "react-dom": "^18.2.0",
     "react-infinite-scroll-component": "^6.1.0",
     "react-router-dom": "^6.10.0",
