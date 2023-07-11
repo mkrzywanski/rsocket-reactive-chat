@@ -31,7 +31,7 @@
     "rsocket-tcp-client": "^1.0.0-alpha.3",
     "rsocket-websocket-client": "^0.0.27",
     "typescript": "^4.9.5",
-    "web-vitals": "^3.3.2"
+    "web-vitals": "^3.4.0"
   },
   "scripts": {
     "start": "if-node-version '>= 17' && react-scripts --openssl-legacy-provider start || react-scripts start",
