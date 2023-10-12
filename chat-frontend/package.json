@@ -58,7 +58,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.22.15",
+    "@babel/preset-typescript": "^7.23.2",
     "@types/jest": "^29.5.4",
     "@types/rsocket-core": "^0.0.7",
     "@types/rsocket-flowable": "^0.0.5",
